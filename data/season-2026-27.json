@@ -1,0 +1,607 @@
+{
+  "gameweeks": [
+    {
+      "gameweek": 1,
+      "scores": {
+        "78294": {
+          "points": 56,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "585693": {
+          "points": 69,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "771414": {
+          "chip": "bboost",
+          "points": 68,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "1435650": {
+          "points": 50,
+          "bank": 5,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "1865368": {
+          "points": 62,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2242349": {
+          "points": 47,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2407753": {
+          "points": 45,
+          "bank": 10,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2625036": {
+          "points": 67,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3023329": {
+          "points": 68,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3349750": {
+          "chip": "bboost",
+          "points": 63,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3434700": {
+          "points": 63,
+          "bank": 5,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3947952": {
+          "points": 46,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "4569733": {
+          "points": 52,
+          "bank": 0,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "5860931": {
+          "points": 59,
+          "bank": 10,
+          "squadValue": 1000,
+          "transferCost": 0,
+          "transfers": 0
+        }
+      }
+    },
+    {
+      "gameweek": 2,
+      "scores": {
+        "78294": {
+          "points": 96,
+          "bank": 10,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "585693": {
+          "points": 93,
+          "bank": 5,
+          "squadValue": 1002,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "771414": {
+          "points": 90,
+          "bank": 0,
+          "squadValue": 1002,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "1435650": {
+          "points": 113,
+          "bank": 5,
+          "squadValue": 1002,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "1865368": {
+          "points": 83,
+          "bank": 0,
+          "squadValue": 1002,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "2242349": {
+          "points": 97,
+          "bank": 0,
+          "squadValue": 1002,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2407753": {
+          "chip": "wildcard",
+          "points": 82,
+          "bank": 10,
+          "squadValue": 1004,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2625036": {
+          "points": 99,
+          "bank": 0,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3023329": {
+          "points": 83,
+          "bank": 19,
+          "squadValue": 1002,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "3349750": {
+          "points": 98,
+          "bank": 0,
+          "squadValue": 1001,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3434700": {
+          "points": 115,
+          "bank": 4,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "3947952": {
+          "points": 77,
+          "bank": 0,
+          "squadValue": 1001,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "4569733": {
+          "points": 104,
+          "bank": 5,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "5860931": {
+          "points": 60,
+          "bank": 9,
+          "squadValue": 1002,
+          "transferCost": 0,
+          "transfers": 1
+        }
+      }
+    },
+    {
+      "gameweek": 3,
+      "scores": {
+        "78294": {
+          "points": 38,
+          "bank": 4,
+          "squadValue": 1006,
+          "transferCost": 4,
+          "transfers": 2
+        },
+        "585693": {
+          "points": 44,
+          "bank": 4,
+          "squadValue": 1008,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "771414": {
+          "points": 41,
+          "bank": 0,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "1435650": {
+          "points": 42,
+          "bank": 8,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "1865368": {
+          "chip": "bboost",
+          "points": 57,
+          "bank": 0,
+          "squadValue": 1005,
+          "transferCost": 4,
+          "transfers": 2
+        },
+        "2242349": {
+          "chip": "3xc",
+          "points": 58,
+          "bank": 9,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 2
+        },
+        "2407753": {
+          "points": 56,
+          "bank": 8,
+          "squadValue": 1009,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "2625036": {
+          "points": 61,
+          "bank": 9,
+          "squadValue": 1005,
+          "transferCost": 0,
+          "transfers": 2
+        },
+        "3023329": {
+          "points": 42,
+          "bank": 19,
+          "squadValue": 1005,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3349750": {
+          "points": 57,
+          "bank": 9,
+          "squadValue": 1004,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "3434700": {
+          "points": 49,
+          "bank": 4,
+          "squadValue": 1005,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3947952": {
+          "points": 57,
+          "bank": 18,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 2
+        },
+        "4569733": {
+          "points": 52,
+          "bank": 5,
+          "squadValue": 1007,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "5860931": {
+          "points": 62,
+          "bank": 10,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 1
+        }
+      }
+    },
+    {
+      "gameweek": 4,
+      "scores": {
+        "78294": {
+          "chip": "wildcard",
+          "points": 83,
+          "bank": 1,
+          "squadValue": 1010,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "585693": {
+          "points": 68,
+          "bank": 11,
+          "squadValue": 1011,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "771414": {
+          "points": 80,
+          "bank": 3,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 3
+        },
+        "1435650": {
+          "points": 59,
+          "bank": 0,
+          "squadValue": 1003,
+          "transferCost": 0,
+          "transfers": 2
+        },
+        "1865368": {
+          "points": 107,
+          "bank": 0,
+          "squadValue": 1007,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2242349": {
+          "chip": "freehit",
+          "points": 98,
+          "bank": 9,
+          "squadValue": 1005,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2407753": {
+          "points": 73,
+          "bank": 7,
+          "squadValue": 1014,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "2625036": {
+          "points": 83,
+          "bank": 4,
+          "squadValue": 1008,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "3023329": {
+          "points": 73,
+          "bank": 19,
+          "squadValue": 1007,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3349750": {
+          "chip": "wildcard",
+          "points": 75,
+          "bank": 1,
+          "squadValue": 1009,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3434700": {
+          "chip": "freehit",
+          "points": 73,
+          "bank": 4,
+          "squadValue": 1007,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3947952": {
+          "points": 59,
+          "bank": 17,
+          "squadValue": 1004,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "4569733": {
+          "points": 66,
+          "bank": 23,
+          "squadValue": 1009,
+          "transferCost": 0,
+          "transfers": 2
+        },
+        "5860931": {
+          "points": 86,
+          "bank": 7,
+          "squadValue": 1006,
+          "transferCost": 0,
+          "transfers": 1
+        }
+      }
+    },
+    {
+      "gameweek": 5,
+      "scores": {
+        "78294": {
+          "chip": "freehit",
+          "points": 61,
+          "bank": 1,
+          "squadValue": 1016,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "585693": {
+          "points": 41,
+          "bank": 8,
+          "squadValue": 1012,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "771414": {
+          "points": 48,
+          "bank": 3,
+          "squadValue": 1004,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "1435650": {
+          "points": 42,
+          "bank": 0,
+          "squadValue": 1005,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "1865368": {
+          "points": 70,
+          "bank": 0,
+          "squadValue": 1012,
+          "transferCost": 0,
+          "transfers": 2
+        },
+        "2242349": {
+          "points": 36,
+          "bank": 8,
+          "squadValue": 1006,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "2407753": {
+          "points": 33,
+          "bank": 7,
+          "squadValue": 1018,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "2625036": {
+          "points": 47,
+          "bank": 11,
+          "squadValue": 1013,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "3023329": {
+          "points": 39,
+          "bank": 19,
+          "squadValue": 1008,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3349750": {
+          "points": 44,
+          "bank": 1,
+          "squadValue": 1012,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3434700": {
+          "chip": "wildcard",
+          "points": 65,
+          "bank": 11,
+          "squadValue": 1005,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "3947952": {
+          "points": 57,
+          "bank": 15,
+          "squadValue": 1008,
+          "transferCost": 0,
+          "transfers": 1
+        },
+        "4569733": {
+          "points": 43,
+          "bank": 23,
+          "squadValue": 1012,
+          "transferCost": 0,
+          "transfers": 0
+        },
+        "5860931": {
+          "points": 54,
+          "bank": 12,
+          "squadValue": 1010,
+          "transferCost": 0,
+          "transfers": 1
+        }
+      }
+    }
+  ],
+  "participants": [
+    {
+      "id": 1865368,
+      "name": "Jac Edwards",
+      "teamName": "Quantum of Tzolis"
+    },
+    {
+      "id": 3434700,
+      "name": "Shaun Mitchell",
+      "teamName": "Cook Pass Tuchel"
+    },
+    {
+      "id": 2625036,
+      "name": "Jason Mitchell",
+      "teamName": "Return of the Mings"
+    },
+    {
+      "id": 3349750,
+      "name": "Greg Kemsley",
+      "teamName": "No1 Ars in show 26"
+    },
+    {
+      "id": 2242349,
+      "name": "Steven Johnson",
+      "teamName": "Ctrl Alt De Ligt"
+    },
+    {
+      "id": 78294,
+      "name": "Paul Bennett",
+      "teamName": "The Jolly Rogers"
+    },
+    {
+      "id": 771414,
+      "name": "Mitchell Horne",
+      "teamName": "Whatever Albion"
+    },
+    {
+      "id": 5860931,
+      "name": "Daniel Hawkins",
+      "teamName": "Gastropod Mollusk FC"
+    },
+    {
+      "id": 4569733,
+      "name": "Mikael Fodor",
+      "teamName": "AnalysisParalysis FC"
+    },
+    {
+      "id": 585693,
+      "name": "Paul Johnson",
+      "teamName": "Minteh Fresh"
+    },
+    {
+      "id": 1435650,
+      "name": "Peter Stanbridge",
+      "teamName": "Pete’s Predators"
+    },
+    {
+      "id": 3023329,
+      "name": "James Ingram",
+      "teamName": "System of a Dowman"
+    },
+    {
+      "id": 3947952,
+      "name": "Jonathan Aikens",
+      "teamName": "JJ Jenkins Jammer"
+    },
+    {
+      "id": 2407753,
+      "name": "Mike Fielding",
+      "teamName": "Goutlaws"
+    }
+  ],
+  "season": "2026-27",
+  "source": {
+    "leagueId": 869128,
+    "retrievedAt": "2026-09-22T13:01:59.555Z"
+  }
+}
