@@ -1,0 +1,26 @@
+name: Import season data
+
+on:
+  schedule:
+    - cron: '0 9 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run import:season-data
+      - uses: actions/upload-artifact@v4
+        with:
+          name: season-2026-27-${{ github.run_id }}
+          path: data/season-2026-27.json
+          retention-days: 30

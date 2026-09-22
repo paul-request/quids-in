@@ -1,0 +1,262 @@
+{
+  "season": "2025-26",
+  "participants": [
+    {
+      "id": 1,
+      "name": "Alice",
+      "teamName": "Aces High"
+    },
+    {
+      "id": 2,
+      "name": "Ben",
+      "teamName": "Biscuit Boys"
+    },
+    {
+      "id": 3,
+      "name": "Chloe",
+      "teamName": "Chilli Chasers"
+    },
+    {
+      "id": 4,
+      "name": "Daniel",
+      "teamName": "Dazzle United"
+    },
+    {
+      "id": 5,
+      "name": "Ella",
+      "teamName": "Eagle Eyes"
+    },
+    {
+      "id": 6,
+      "name": "Frank",
+      "teamName": "Frosty FC"
+    },
+    {
+      "id": 7,
+      "name": "Grace",
+      "teamName": "Golden Goal"
+    },
+    {
+      "id": 8,
+      "name": "Henry",
+      "teamName": "Havoc XI"
+    },
+    {
+      "id": 9,
+      "name": "Iris",
+      "teamName": "Indigo FC"
+    },
+    {
+      "id": 10,
+      "name": "Jack",
+      "teamName": "Jolly Jacks"
+    },
+    {
+      "id": 11,
+      "name": "Kira",
+      "teamName": "Kite Kickers"
+    },
+    {
+      "id": 12,
+      "name": "Leo",
+      "teamName": "Luna Legends"
+    }
+  ],
+  "gameweeks": [
+    {
+      "gameweek": 1,
+      "scores": {
+        "1": {
+          "points": 72,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "2": {
+          "points": 68,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "3": {
+          "points": 64,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "4": {
+          "points": 59,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "5": {
+          "points": 55,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "6": {
+          "points": 51,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "7": {
+          "points": 48,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "8": {
+          "points": 45,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "9": {
+          "points": 41,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "10": {
+          "points": 38,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "11": {
+          "points": 35,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "12": {
+          "points": 32,
+          "transfers": 0,
+          "transferCost": 0
+        }
+      }
+    },
+    {
+      "gameweek": 2,
+      "scores": {
+        "1": {
+          "points": 61,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "2": {
+          "points": 78,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "3": {
+          "points": 78,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "4": {
+          "points": 67,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "5": {
+          "points": 62,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "6": {
+          "points": 58,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "7": {
+          "points": 54,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "8": {
+          "points": 51,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "9": {
+          "points": 47,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "10": {
+          "points": 44,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "11": {
+          "points": 40,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "12": {
+          "points": 36,
+          "transfers": 0,
+          "transferCost": 0
+        }
+      }
+    },
+    {
+      "gameweek": 3,
+      "scores": {
+        "1": {
+          "points": 68,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "2": {
+          "points": 64,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "3": {
+          "points": 60,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "4": {
+          "points": 83,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "5": {
+          "points": 57,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "6": {
+          "points": 54,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "7": {
+          "points": 50,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "8": {
+          "points": 46,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "9": {
+          "points": 42,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "10": {
+          "points": 39,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "11": {
+          "points": 35,
+          "transfers": 0,
+          "transferCost": 0
+        },
+        "12": {
+          "points": 31,
+          "transfers": 0,
+          "transferCost": 0
+        }
+      }
+    }
+  ]
+}
