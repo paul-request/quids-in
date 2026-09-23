@@ -443,13 +443,20 @@ tbody tr:last-child td {
 }
 
 .gameweek-picker select {
+  -webkit-appearance: none;
+  appearance: none;
   min-height: 2.5rem;
   padding: 0.375rem 2rem 0.375rem 0.625rem;
   border: 1px solid #5271b8;
   border-radius: 0.375rem;
   color: #f5f7fb;
   background: #162143;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23fff' d='m1 1 5 5 5-5'/%3E%3C/svg%3E");
+  background-position: right 0.625rem center;
+  background-repeat: no-repeat;
+  background-size: 0.75rem auto;
   font: inherit;
+  color-scheme: dark;
 }
 
 .gameweek-picker select:focus-visible {
