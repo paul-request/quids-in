@@ -147,6 +147,18 @@ describe('App', () => {
     expect(screen.getAllByRole('cell', { name: '-£38.00' })).toHaveLength(2);
   });
 
+  it('should show when the data was last refreshed if the season has a source', () => {
+    renderApp({ ...statsSeason, source: { leagueId: 1, retrievedAt: '2026-09-22T13:01:59.555Z' } });
+
+    expect(screen.getByText(/Data last refreshed:/)).toBeTruthy();
+  });
+
+  it('should not show a last-refreshed timestamp when the season has no source', () => {
+    renderApp(statsSeason);
+
+    expect(screen.queryByText(/Data last refreshed:/)).toBeNull();
+  });
+
   it('should open Player stats from the combined player/team link and return to the dashboard', async () => {
     window.location.hash = '#/';
     renderApp(statsSeason);
