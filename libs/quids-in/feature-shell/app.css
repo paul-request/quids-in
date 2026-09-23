@@ -547,12 +547,15 @@ tbody tr:last-child td {
   }
 
   .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+    display: block;
+    column-count: 2;
+    column-gap: 1.5rem;
   }
 
   .summary-grid > .dashboard-section {
     min-width: 0;
+    margin-bottom: 1.5rem;
+    break-inside: avoid;
   }
 
   .empty-state + .dashboard-section {
@@ -562,7 +565,13 @@ tbody tr:last-child td {
 
 @media (min-width: 40.01rem) and (max-width: 63.99rem) {
   .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+    display: block;
+    column-count: 2;
+    column-gap: 1.5rem;
+  }
+
+  .summary-grid > .dashboard-section {
+    margin-bottom: 1.5rem;
+    break-inside: avoid;
   }
 }
