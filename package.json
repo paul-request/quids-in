@@ -17,7 +17,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "quids-in project scaffolding",
+  "description": "Svelte/Vite scoreboard for a private Fantasy Premier League group, showing Gameweek results, overall standings and last-place rankings",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
