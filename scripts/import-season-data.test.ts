@@ -2,11 +2,55 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { importSeasonData } from './import-season-data.mjs';
 
-function jsonResponse(body: unknown): Response {
-  return new Response(JSON.stringify(body), { status: 200 });
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status });
 }
 
 describe('importSeasonData', () => {
+  it('retries transient FPL failures before returning imported data', async () => {
+    let standingsAttempts = 0;
+    const fetchFn = vi.fn(async (url: string) => {
+      if (url.includes('standings')) {
+        standingsAttempts += 1;
+
+        if (standingsAttempts === 1) {
+          return jsonResponse({}, 503);
+        }
+
+        return jsonResponse({
+          standings: {
+            has_next: false,
+            page: 1,
+            results: [
+              { entry: 101, entry_name: 'Team One', player_name: 'Alex' },
+            ],
+          },
+        });
+      }
+
+      return jsonResponse({
+        current: [
+          {
+            event: 1,
+            event_transfers: 0,
+            event_transfers_cost: 0,
+            points: 60,
+          },
+        ],
+      });
+    });
+
+    const season = await importSeasonData({
+      fetchFn,
+      retrievedAt: '2026-09-21T12:00:00.000Z',
+    });
+
+    expect(season.participants).toEqual([
+      { id: 101, name: 'Alex', teamName: 'Team One' },
+    ]);
+    expect(standingsAttempts).toBe(2);
+  });
+
   it('imports every standings page with FPL entry IDs, score metadata, and squad value/bank when present', async () => {
     const fetchFn = vi.fn(async (url: string) => {
       if (url.includes('page_standings=1')) {
