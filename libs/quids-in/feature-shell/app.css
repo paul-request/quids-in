@@ -198,6 +198,17 @@ a:focus-visible {
   white-space: nowrap;
 }
 
+.app-footer {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.app-footer p {
+  margin: 0;
+  color: #9aa5c4;
+  font-size: 0.8125rem;
+}
+
 .winner-badge,
 .last-place-badge,
 .chip-badge {

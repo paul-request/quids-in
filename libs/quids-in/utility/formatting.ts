@@ -42,6 +42,21 @@ export function formatTeamValue(tenthsOfMillion: number): string {
 }
 
 /**
+ * Formats an ISO 8601 timestamp (as recorded on a Season's `source`) as a
+ * British-locale date and time, e.g. `22/09/2026, 13:01`, converting UTC to
+ * the viewer's local time.
+ */
+export function formatTimestamp(isoTimestamp: string): string {
+  return new Date(isoTimestamp).toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
  * Builds a participant-ID lookup map, used by dashboard cards to resolve a
  * result row's `participantId` back to the participant's name and team.
  */

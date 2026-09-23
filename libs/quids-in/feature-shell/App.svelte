@@ -16,6 +16,7 @@
   import type { Season } from '../utility/results.interfaces';
 
   import Header from './Header.svelte';
+  import Footer from './Footer.svelte';
   import BiggestSlugsCard from './BiggestSlugsCard.svelte';
   import AverageWeeklyPositionCard from './AverageWeeklyPositionCard.svelte';
   import GameweekScoresTable from './GameweekScoresTable.svelte';
@@ -181,5 +182,7 @@
       />
     </div>
   </div>
+
+  <Footer retrievedAt={seasonData.source?.retrievedAt} />
 </main>
 {/if}
