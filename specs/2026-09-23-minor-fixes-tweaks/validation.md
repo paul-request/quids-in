@@ -7,18 +7,17 @@
 3. Run `npm test` and confirm existing and new tests pass.
 4. Run `npm run build` and confirm the production bundle succeeds.
 5. Run `npm run validate` as the merge-gate command.
-6. Test the import comparison logic with:
-   - identical generated and committed snapshots;
-   - semantically changed scores, chips, participants, or Gameweeks;
-   - equivalent snapshots with only normalised formatting differences;
-   - a repeated run after a changed snapshot has been committed;
+6. Test the import and deployment path with:
    - malformed generated data;
-   - import, git, commit, and push failures.
+   - import failures;
+   - build failures; and
+   - deployment failures.
 7. Validate the workflow definition so:
    - the cron runs every day at midnight;
-   - scheduled and manual dispatches use the same change-aware path;
+   - scheduled and manual dispatches use the same import, build, and deploy
+     path;
    - permissions are sufficient; and
-   - no-change runs cannot reach a deployment-triggering push.
+   - the freshly generated snapshot is included in the Pages build.
 
 ## Browser and accessibility checks
 
@@ -37,21 +36,15 @@
 ## Manual workflow acceptance
 
 1. Confirm the workflow schedule is configured for midnight daily.
-2. Run the import workflow manually against a fixture or controlled test
-   snapshot that is unchanged; confirm it logs no change and creates no
-   commit or deployment.
-3. Run it with changed FPL data; confirm it validates, commits only the
-   season snapshot to `main`, and causes the existing Pages deployment to
-   run through its `push` trigger.
-4. Rerun the same changed-data workflow; confirm no duplicate commit or
-   deployment is created.
-5. Force an import or push failure; confirm the workflow fails visibly and
-   does not report a successful no-change result.
+2. Run the import workflow manually against controlled data; confirm it
+   builds and deploys the site using the freshly generated snapshot.
+3. Confirm the workflow does not commit or modify `main`.
+4. Force an import, build, or deployment failure; confirm the workflow fails
+   visibly.
 
 ## Merge gate
 
 The phase is ready to merge only when the selector checks pass in all agreed
-browsers and viewport classes, the changed and unchanged workflow paths are
-verified, failure states are explicit, `npm run validate` passes, and no
-regression is observed in the existing dashboard or GitHub Pages deployment
-flow.
+browsers and viewport classes, the direct daily deployment path is verified,
+failure states are explicit, `npm run validate` passes, and no regression is
+observed in the existing dashboard or GitHub Pages deployment flow.

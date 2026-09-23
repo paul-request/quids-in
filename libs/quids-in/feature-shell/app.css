@@ -443,6 +443,7 @@ tbody tr:last-child td {
 }
 
 .gameweek-picker select {
+  -webkit-appearance: none;
   appearance: none;
   min-height: 2.5rem;
   padding: 0.375rem 2rem 0.375rem 0.625rem;

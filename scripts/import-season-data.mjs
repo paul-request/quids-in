@@ -5,6 +5,8 @@ import { dirname, resolve } from 'node:path';
 const FPL_API_BASE_URL = 'https://fantasy.premierleague.com/api';
 const DEFAULT_LEAGUE_ID = 869128;
 const DEFAULT_SEASON = '2026-27';
+const FETCH_ATTEMPTS = 3;
+const FETCH_TIMEOUT_MS = 15000;
 
 export async function importSeasonData({
   fetchFn = globalThis.fetch,
@@ -98,20 +100,45 @@ async function fetchLeagueEntries(fetchFn, leagueId) {
 
 async function fetchJson(fetchFn, path, description) {
   let response;
+  let lastError;
 
-  try {
-    response = await fetchFn(`${FPL_API_BASE_URL}${path}`);
-  } catch (error) {
-    throw new Error(
-      `FPL request failed for ${description}: ${getErrorMessage(error)}`,
-      { cause: error },
-    );
+  for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt += 1) {
+    try {
+      response = await fetchFn(`${FPL_API_BASE_URL}${path}`, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+    } catch (error) {
+      lastError = new Error(
+        `FPL request failed for ${description}: ${getErrorMessage(error)}`,
+        { cause: error },
+      );
+    }
+
+    if (response?.ok) {
+      break;
+    }
+
+    if (response && response.status >= 400 && response.status < 500) {
+      throw new Error(
+        `FPL request failed for ${description}: HTTP ${response.status}`,
+      );
+    }
+
+    if (!lastError) {
+      lastError = new Error(
+        `FPL request failed for ${description}: HTTP ${response?.status ?? 'unknown'}`,
+      );
+    }
+
+    if (attempt < FETCH_ATTEMPTS) {
+      await new Promise((resolveRetry) =>
+        setTimeout(resolveRetry, 2 ** (attempt - 1) * 500),
+      );
+    }
   }
 
   if (!response?.ok) {
-    throw new Error(
-      `FPL request failed for ${description}: HTTP ${response?.status ?? 'unknown'}`,
-    );
+    throw lastError;
   }
 
   try {

@@ -70,9 +70,10 @@ produce the net score, and preserving transfers, transfer cost, and any
 recorded chip. Review the generated file and the dashboard before committing
 it.
 
-The scheduled GitHub Actions workflow runs the same command every Tuesday and
-can be started manually. It uploads a timestamped artifact only; it does not
-commit, deploy, or modify `main`.
+The scheduled GitHub Actions workflow runs the same command every day at
+midnight UTC and can be started manually. It builds and deploys the site
+directly with the freshly imported snapshot; it does not commit or modify
+`main`.
 
 ## Weekly data update workflow
 
@@ -114,7 +115,7 @@ contains:
 include them; missing values must not be treated as zero.
 
 The importer is the source of truth for these values. Do not hand-edit
-derived scoreboard values as part of the normal weekly workflow. Review the
-generated snapshot before committing it. The scheduled workflow and manual
-workflow-dispatch run upload a timestamped artifact for review; they do not
-commit to `main`, deploy the app, or change the checked-in season data.
+derived scoreboard values as part of the normal weekly workflow. The
+scheduled workflow and manual workflow-dispatch run upload a timestamped
+artifact and deploy the app using the freshly generated snapshot; they do not
+commit to `main` or change the checked-in season data.
