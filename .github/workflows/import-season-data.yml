@@ -1,16 +1,25 @@
-name: Import season data
+name: Import and deploy season data
 
 on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
+concurrency:
+  group: import-and-deploy-season-data
+  cancel-in-progress: false
 
 jobs:
-  import:
+  import-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,38 +28,15 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Import current FPL season data
-        run: npm run import:season-data -- /tmp/season-2026-27.json
-      - name: Compare imported data with committed snapshot
-        id: compare
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          jq -S 'del(.source.retrievedAt)' /tmp/season-2026-27.json > /tmp/imported-normalised.json
-          jq -S 'del(.source.retrievedAt)' data/season-2026-27.json > /tmp/committed-normalised.json
-
-          if cmp --silent /tmp/imported-normalised.json /tmp/committed-normalised.json; then
-            echo 'No FPL data changes detected; skipping commit and deployment.'
-            echo 'changed=false' >> "$GITHUB_OUTPUT"
-          else
-            echo 'FPL data changes detected; the refreshed snapshot will be committed.'
-            echo 'changed=true' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Replace committed snapshot
-        if: steps.compare.outputs.changed == 'true'
-        run: cp /tmp/season-2026-27.json data/season-2026-27.json
-      - name: Commit refreshed snapshot
-        if: steps.compare.outputs.changed == 'true'
-        run: |
-          set -euo pipefail
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/season-2026-27.json
-          git commit -m 'chore(data): update FPL season snapshot'
-          git push origin HEAD:main
+        run: npm run import:season-data
+      - run: npm run build
       - uses: actions/upload-artifact@v4
         with:
           name: season-2026-27-${{ github.run_id }}
-          path: /tmp/season-2026-27.json
+          path: data/season-2026-27.json
           retention-days: 30
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
