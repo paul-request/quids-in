@@ -1,5 +1,9 @@
 # Plan: Minor fixes and tweaks
 
+> **Note:** the daily import workflow described here has since been folded
+> into `deploy-pages.yml` by
+> [Phase 13](../2026-09-29-fresh-data-on-merge/requirements.md).
+
 1. **Define the daily deployment path**
    - Schedule the workflow to run daily at midnight UTC.
    - Use the existing importer to write the fresh snapshot into the build
