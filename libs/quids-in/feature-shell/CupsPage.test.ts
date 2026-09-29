@@ -138,14 +138,14 @@ describe('CupsPage', () => {
       )
     ).toContain('Begins Gameweek 10 (Revealed after gameweek 9)');
     expect(screen.queryByRole('link', { name: /Alice/ })).toBeNull();
-    expect(screen.getAllByText('Hidden until Gameweek 9 ends')).toHaveLength(4);
+    expect(screen.getAllByText('Hidden until Gameweek 9 ends')).toHaveLength(3);
 
     const obfuscated = document.querySelectorAll('.cup-slot__obfuscated');
 
-    expect(obfuscated).toHaveLength(4);
+    expect(obfuscated).toHaveLength(3);
     obfuscated.forEach((element) => expect(element.getAttribute('aria-hidden')).toBe('true'));
     expect(obfuscated[0].textContent).toContain('Alice');
-    expect(obfuscated[3].textContent).toBe('Bye');
+    expect(screen.getByText('Bye').closest('.cup-slot__obfuscated')).toBeNull();
     expect(document.querySelector('.cup-slot__score')).toBeNull();
     expect(screen.getByText('Winner of Semi-final 1')).toBeTruthy();
     expect(screen.getByText('Winner of Semi-final 2')).toBeTruthy();
@@ -176,11 +176,11 @@ describe('CupsPage', () => {
 
     const obfuscated = document.querySelectorAll('.cup-slot__obfuscated');
 
-    expect(obfuscated).toHaveLength(5);
-    expect(obfuscated[4].getAttribute('aria-hidden')).toBe('true');
-    expect(obfuscated[4].textContent).toContain(participantsById.get(3)?.name);
+    expect(obfuscated).toHaveLength(4);
+    expect(obfuscated[3].getAttribute('aria-hidden')).toBe('true');
+    expect(obfuscated[3].textContent).toContain(participantsById.get(3)?.name);
     expect(screen.queryByText('Winner of Semi-final 2')).toBeNull();
-    expect(screen.getAllByText('Hidden until Gameweek 9 ends')).toHaveLength(5);
+    expect(screen.getAllByText('Hidden until Gameweek 9 ends')).toHaveLength(4);
   });
 
   it('shows revealed links, scores, byes, tie-break reasons, and the champion', () => {

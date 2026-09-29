@@ -493,7 +493,7 @@ a:focus-visible {
   gap: 0.125rem;
   min-height: 2.5rem;
   color: #f5f7fb;
-  filter: blur(6px);
+  filter: blur(12px);
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
