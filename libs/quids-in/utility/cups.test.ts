@@ -226,9 +226,33 @@ describe('applyCupReveal', () => {
     expect(bracket.rounds[0].ties[1].slots[1]).toEqual({ kind: 'bye', obfuscated: true });
     expect(bracket.rounds[1].ties[0].slots).toEqual([
       { kind: 'winner-of', tieLabel: 'Fixture 1' },
-      { kind: 'winner-of', tieLabel: 'Fixture 2' },
+      { kind: 'participant', obfuscated: true, participantId: 3 },
+    ]);
+    expect(bracket.rounds[1].ties[0].status).toBe('scheduled');
+    expect(bracket.rounds[1].ties[1].slots).toEqual([
+      { kind: 'winner-of', tieLabel: 'Fixture 3' },
+      { kind: 'participant', obfuscated: true, participantId: 6 },
+    ]);
+    expect(bracket.rounds[2].ties[0].slots).toEqual([
+      { kind: 'winner-of', tieLabel: 'Semi-final 1' },
+      { kind: 'winner-of', tieLabel: 'Semi-final 2' },
     ]);
     expect(bracket.championParticipantId).toBeUndefined();
+  });
+
+  it('keeps byes as walkovers into the next round once revealed', () => {
+    const bracket = applyCupReveal(buildQuidsInCupBracket(draw, season([gameweek(9, {})])));
+
+    expect(bracket.rounds[1].ties[0].slots[1]).toEqual({
+      kind: 'participant',
+      obfuscated: false,
+      participantId: 3,
+    });
+    expect(bracket.rounds[1].ties[1].slots[1]).toEqual({
+      kind: 'participant',
+      obfuscated: false,
+      participantId: 6,
+    });
   });
 
   it('obfuscates before the reveal Gameweek has been recorded at all', () => {

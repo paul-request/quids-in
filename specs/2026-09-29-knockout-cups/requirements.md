@@ -136,7 +136,9 @@ Out of scope:
     hover, focus, or transition that removes it early;
   - show no scores, because none exist before Round 1 is played.
 - Later-round slots show "Winner of Fixture N" and are not blurred. No
-  real future opponent exists to hide.
+  real future opponent exists to hide. The exception is a Round 1 bye: its
+  participant is already through, so they are shown in their next-round
+  slot, blurred and hidden from assistive technology like the Round 1 names.
 - If a cup has no draw data yet (for example, FPL has not created its cup),
   there is nothing to blur. The section shows the bracket shape and a "Draw
   not yet made" message instead.
