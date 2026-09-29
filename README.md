@@ -70,10 +70,18 @@ produce the net score, and preserving transfers, transfer cost, and any
 recorded chip. Review the generated file and the dashboard before committing
 it.
 
-The scheduled GitHub Actions workflow runs the same command every day at
-midnight UTC and can be started manually. It builds and deploys the site
-directly with the freshly imported snapshot; it does not commit or modify
-`main`.
+The `deploy-pages.yml` GitHub Actions workflow runs the same command before
+**every** deployment: on each merge to `main`, every day at midnight UTC, and
+when started manually. It builds and deploys the site directly with the
+freshly imported snapshot, so merging a pull request never rolls the live
+site back to the checked-in data. It does not commit or modify `main`.
+
+The import is retried up to 3 times (waiting 60s, then 120s) via
+`scripts/retry.sh`, on top of the importer's own per-request retries. If
+every attempt fails, the workflow fails before building, and the live site
+keeps its last successful deployment rather than falling back to the
+checked-in snapshot. Deployments share one `pages` concurrency group and are
+never cancelled mid-run.
 
 ## Weekly data update workflow
 
@@ -134,7 +142,7 @@ regenerated or hand-edited after it is committed (the script refuses to
 overwrite an existing draw unless given `--force`).
 
 The importer is the source of truth for these values. Do not hand-edit
-derived scoreboard values as part of the normal weekly workflow. The
-scheduled workflow and manual workflow-dispatch run upload a timestamped
-artifact and deploy the app using the freshly generated snapshot; they do not
-commit to `main` or change the checked-in season data.
+derived scoreboard values as part of the normal weekly workflow. Every
+deployment (merge, scheduled, or manual) uploads a timestamped artifact and
+deploys the app using the freshly generated snapshot; it does not commit to
+`main` or change the checked-in season data.

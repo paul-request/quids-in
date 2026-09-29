@@ -33,6 +33,11 @@ deliberately deferred until the app is built and refined — see Phase 10.
   prioritised **ahead of Phase 11**, and its Quids In Cup slice must be live
   before Gameweek 15 ends. Phase 11 (historical seasons import) is not
   yet started.
+- Phase 13 (fresh data on merge deployments) is implemented on branch
+  `fix/fresh-data-on-merge` (see
+  [2026-09-29-fresh-data-on-merge](./2026-09-29-fresh-data-on-merge/requirements.md)).
+  The daily import workflow is folded into `deploy-pages.yml`, so every
+  deployment imports fresh FPL data.
 
 ## Phase 0 — Project scaffolding
 
@@ -338,7 +343,8 @@ removed or replaced first.
   deploys the `dist` output to GitHub Pages on push to `main`, using the
   standard `actions/upload-pages-artifact` /
   `actions/deploy-pages` actions. Leave the existing
-  `import-season-data.yml` workflow untouched.
+  `import-season-data.yml` workflow untouched. (Superseded by Phase 13:
+  the import workflow has since been folded into `deploy-pages.yml`.)
 - Enable GitHub Pages on the new repo (Settings → Pages → Source: GitHub
   Actions).
 - Confirm the deployed site at `https://paul-request.github.io/quids-in/`
@@ -411,6 +417,24 @@ Full detail:
   correctly from real FPL data, the tie-break and money rules are fully
   tested, every item in the phase's validation checklist is ticked, and
   `npm run validate` passes.
+
+## Phase 13 — Fresh data on merge deployments
+
+Full detail:
+[requirements](./2026-09-29-fresh-data-on-merge/requirements.md),
+[plan](./2026-09-29-fresh-data-on-merge/plan.md),
+[validation](./2026-09-29-fresh-data-on-merge/validation.md).
+
+- Merges to `main` used to deploy the stale checked-in snapshot, undoing the
+  daily fresh-data deployment until the next midnight run.
+- `deploy-pages.yml` now imports fresh FPL data before every build (merge,
+  midnight schedule, and manual dispatch). `import-season-data.yml` is
+  removed.
+- The import is retried up to 3 times; if it still fails, the deploy fails
+  and the live site keeps its last good deployment.
+- **Done when:** a merge deployment shows a current "Data last refreshed"
+  timestamp, the validation checklist is ticked, and `npm run validate`
+  passes.
 
 ## Explicitly deferred / not planned
 
