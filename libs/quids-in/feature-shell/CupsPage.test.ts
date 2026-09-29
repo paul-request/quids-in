@@ -151,6 +151,38 @@ describe('CupsPage', () => {
     expect(screen.getByText('Winner of Semi-final 2')).toBeTruthy();
   });
 
+  it('shows a bye winner blurred in the next round before the reveal', () => {
+    renderCups([
+      bracket({
+        ...obfuscatedCup,
+        rounds: [
+          obfuscatedCup.rounds[0],
+          {
+            ...obfuscatedCup.rounds[1],
+            ties: [
+              {
+                label: 'Final',
+                slots: [
+                  { kind: 'winner-of', tieLabel: 'Semi-final 1' },
+                  { kind: 'participant', obfuscated: true, participantId: 3 },
+                ],
+                status: 'scheduled',
+              },
+            ],
+          },
+        ],
+      }),
+    ]);
+
+    const obfuscated = document.querySelectorAll('.cup-slot__obfuscated');
+
+    expect(obfuscated).toHaveLength(5);
+    expect(obfuscated[4].getAttribute('aria-hidden')).toBe('true');
+    expect(obfuscated[4].textContent).toContain(participantsById.get(3)?.name);
+    expect(screen.queryByText('Winner of Semi-final 2')).toBeNull();
+    expect(screen.getAllByText('Hidden until Gameweek 9 ends')).toHaveLength(5);
+  });
+
   it('shows revealed links, scores, byes, tie-break reasons, and the champion', () => {
     renderCups([revealedCup], 11);
 

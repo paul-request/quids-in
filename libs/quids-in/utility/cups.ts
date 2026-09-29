@@ -163,7 +163,9 @@ export function buildFplCupBracket(
 /**
  * Returns the bracket to display. Before the reveal Gameweek has ended, the
  * real Round 1 pairings are kept (so the page can show them blurred) but
- * marked as obfuscated, with no scores, results, or later-round opponents.
+ * marked as obfuscated, with no scores or results. Later rounds show
+ * "Winner of" placeholders, except that a Round 1 bye winner is already
+ * known, so it is carried into the next round (also obfuscated).
  */
 export function applyCupReveal(bracket: CupBracket): CupBracket {
   if (bracket.revealed || !bracket.drawAvailable) {
@@ -185,12 +187,18 @@ export function applyCupReveal(bracket: CupBracket): CupBracket {
         }
 
         const previousTies = bracket.rounds[roundIndex - 1].ties;
+        const feederSlot = (feeder: CupTie | undefined): CupSlot =>
+          roundIndex === 1 &&
+          feeder?.status === 'walkover' &&
+          feeder.winnerParticipantId !== undefined
+            ? { kind: 'participant', obfuscated: true, participantId: feeder.winnerParticipantId }
+            : { kind: 'winner-of', tieLabel: feeder?.label ?? 'TBC' };
 
         return {
           label: tie.label,
           slots: [
-            { kind: 'winner-of', tieLabel: previousTies[tieIndex * 2]?.label ?? 'TBC' },
-            { kind: 'winner-of', tieLabel: previousTies[tieIndex * 2 + 1]?.label ?? 'TBC' },
+            feederSlot(previousTies[tieIndex * 2]),
+            feederSlot(previousTies[tieIndex * 2 + 1]),
           ],
           status: 'scheduled',
         };

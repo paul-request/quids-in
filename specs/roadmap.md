@@ -409,7 +409,9 @@ Full detail:
   real Round 1 names and teams as a teaser, blurred with a CSS filter. They
   are not links and are hidden from screen readers. Remove the blur once
   that Gameweek ends. Later-round opponents only appear once their feeding
-  tie is decided. This is cosmetic only, because the names are in the HTML,
+  tie is decided; Round 1 byes are decided at the draw, so those players
+  appear in the next round straight away (blurred until the reveal). This
+  is cosmetic only, because the names are in the HTML,
   the repo, and the bundle.
 - Money: £1 per participant per cup. The season contribution rises from £38
   to £40, and the cup winner takes the whole pot when the final is decided.
