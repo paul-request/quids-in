@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "import:season-data": "node scripts/import-season-data.mjs",
+    "generate:cup-draw": "node scripts/generate-cup-draw.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .js,.ts,.svelte --max-warnings 0",

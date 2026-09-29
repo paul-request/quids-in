@@ -1,0 +1,70 @@
+{
+  "cups": [
+    {
+      "id": "quids-in-cup",
+      "name": "Quids In Cup",
+      "revealAfterGameweek": 15,
+      "startGameweek": 16,
+      "round1Fixtures": [
+        {
+          "fixture": 1,
+          "participantIds": [
+            null,
+            2242349
+          ]
+        },
+        {
+          "fixture": 2,
+          "participantIds": [
+            3023329,
+            585693
+          ]
+        },
+        {
+          "fixture": 3,
+          "participantIds": [
+            5860931,
+            1865368
+          ]
+        },
+        {
+          "fixture": 4,
+          "participantIds": [
+            3947952,
+            78294
+          ]
+        },
+        {
+          "fixture": 5,
+          "participantIds": [
+            771414,
+            3349750
+          ]
+        },
+        {
+          "fixture": 6,
+          "participantIds": [
+            null,
+            2625036
+          ]
+        },
+        {
+          "fixture": 7,
+          "participantIds": [
+            3434700,
+            1435650
+          ]
+        },
+        {
+          "fixture": 8,
+          "participantIds": [
+            4569733,
+            2407753
+          ]
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2026-09-29T14:26:06.246Z",
+  "season": "2026-27"
+}

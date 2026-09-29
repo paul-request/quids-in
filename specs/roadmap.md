@@ -25,9 +25,14 @@ deliberately deferred until the app is built and refined — see Phase 10.
 - Phase 9 responsive and weekly-update-workflow polish is complete,
   including the Phase 9 extension (header logo sizing, player team value,
   and mobile badge/heading abbreviations).
-- Phase 10 (GitHub Pages deployment) is planned below and awaiting
-  approval before implementation. Phase 11 (historical seasons import) is
-  not yet started.
+- Phase 10 (GitHub Pages deployment) is complete: the repo lives at
+  `paul-request/quids-in` and deploys to GitHub Pages.
+- Phase 12 (knockout cups) is implemented on branch `feature/knockout-cups`
+  (see [2026-09-29-knockout-cups](./2026-09-29-knockout-cups/requirements.md))
+  and is awaiting sign-off against its validation checklist. It is
+  prioritised **ahead of Phase 11**, and its Quids In Cup slice must be live
+  before Gameweek 15 ends. Phase 11 (historical seasons import) is not
+  yet started.
 
 ## Phase 0 — Project scaffolding
 
@@ -141,6 +146,7 @@ deliberately deferred until the app is built and refined — see Phase 10.
 ## Phase 6 — Profit and loss
 
 - Treat every participant as having paid the fixed £38 season contribution.
+  (Phase 12 raises this to £40 to include £1 per knockout cup.)
 - Calculate each recorded Gameweek's prize pot as £1 multiplied by the season
   participant count.
 - Award the complete pot to a sole winner. Split joint-win pots in whole
@@ -365,6 +371,46 @@ removed or replaced first.
 - **Done when:** at least one previous season's real data has been
   imported and is viewable in the app, and cross-season win totals are
   displayed correctly.
+
+## Phase 12 — Knockout cups (prioritised ahead of Phase 11)
+
+Full detail:
+[requirements](./2026-09-29-knockout-cups/requirements.md),
+[plan](./2026-09-29-knockout-cups/plan.md),
+[validation](./2026-09-29-knockout-cups/validation.md).
+
+- Two single-Gameweek-per-round knockout cups, each in a 16-slot bracket
+  (8 → 4 → 2 → 1) with 2 Round 1 byes for the 14 participants:
+  - **Quids In Cup** (ours): GW16 Round 1, GW17 Quarter-final, GW18
+    Semi-final, and GW19 Final. The random draw is generated once by a
+    local script and committed in a separate cup-draw file.
+  - **FPL League Cup** (official): GW35–38. Fixtures, byes, and winners are
+    imported from FPL once FPL creates the league's cup. We do not draw it.
+- Quids In Cup ties are won on net score (points minus transfer cost).
+  Level scores are decided by FPL's cup rules: most goals scored, then
+  fewest goals conceded (counted over the 11 counting players after
+  automatic subs, with no captain multiplier), then a deterministic coin
+  toss.
+- The importer adds each Gameweek's ended status (FPL
+  `finished && data_checked`), goals scored and conceded for Quids In Cup
+  Gameweeks, and FPL League Cup matches. The daily import-and-deploy
+  workflow then advances both cups automatically.
+- Add a `/#/cups` page, linked from a "🏆 Cups" button beside the logo in
+  the dashboard header. The page shows the site header with a "Dashboard" button. It shows Round 1
+  player-vs-player ties and every later round as `Winner of Fixture N vs
+  Winner of Fixture M` up to the final.
+- Until the preceding Gameweek (GW15 or GW34) has ended, show each cup's
+  real Round 1 names and teams as a teaser, blurred with a CSS filter. They
+  are not links and are hidden from screen readers. Remove the blur once
+  that Gameweek ends. Later-round opponents only appear once their feeding
+  tie is decided. This is cosmetic only, because the names are in the HTML,
+  the repo, and the bundle.
+- Money: £1 per participant per cup. The season contribution rises from £38
+  to £40, and the cup winner takes the whole pot when the final is decided.
+- **Done when:** the draw is committed, the Cups page reveals and advances
+  correctly from real FPL data, the tie-break and money rules are fully
+  tested, every item in the phase's validation checklist is ticked, and
+  `npm run validate` passes.
 
 ## Explicitly deferred / not planned
 
