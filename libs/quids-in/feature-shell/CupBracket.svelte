@@ -114,11 +114,6 @@
                           Through<span class="visually-hidden"> to the next round</span>
                         </span>
                       {/if}
-                    {:else if slot.kind === 'bye' && slot.obfuscated}
-                      <span class="cup-slot__obfuscated" aria-hidden="true">Bye</span>
-                      <span class="visually-hidden">
-                        Hidden until Gameweek {bracket.revealAfterGameweek} ends
-                      </span>
                     {:else if slot.kind === 'bye'}
                       <span class="cup-slot__placeholder">Bye</span>
                     {:else if slot.kind === 'winner-of'}

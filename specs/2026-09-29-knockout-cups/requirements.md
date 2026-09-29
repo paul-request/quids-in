@@ -121,10 +121,11 @@ Out of scope:
     parenthesised status in a smaller font size;
   - the full bracket shape, with 8 Round 1 fixtures and the Winner-of
     placeholders for later rounds;
-  - the real Round 1 player names, team names, and byes, rendered in place
-    but **obfuscated with a CSS filter**, for example
-    `filter: blur(0.35rem)`. People can see that the names are there, but
-    not read them. This is meant to build excitement before the reveal.
+  - the real Round 1 player names and team names, rendered in place
+    but **obfuscated with a CSS filter** (`filter: blur(12px)`). People can
+    see that the names are there, but not read them. This is meant to build
+    excitement before the reveal. Byes are not secret, so "Bye" is shown
+    unblurred.
 - Obfuscated slots must:
   - be plain text, not Player/team links, so they cannot be focused,
     clicked, or hovered to reveal a destination URL;
