@@ -7,6 +7,8 @@
   } from '../utility/results.interfaces';
   import { formatBalance, formatNumber, formatTeamValue } from '../utility/formatting';
 
+  import Header from './Header.svelte';
+
   let {
     stats,
     participant,
@@ -27,9 +29,10 @@
 </script>
 
 <main class="page">
+  <Header action="dashboard" />
+
   {#if stats}
     <section class="dashboard-section player-stats" aria-labelledby="player-stats-heading">
-      <a class="back-link" href="#/">Back to dashboard</a>
       <p class="eyebrow">Player stats</p>
       <h1 id="player-stats-heading">{stats.participant.name}</h1>
       <p class="player-stats__team">{stats.participant.teamName}</p>

@@ -1,4 +1,4 @@
-import { mkdir, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -11,14 +11,16 @@ const FETCH_TIMEOUT_MS = 15000;
 export async function importSeasonData({
   fetchFn = globalThis.fetch,
   leagueId = DEFAULT_LEAGUE_ID,
+  logWarning = console.warn,
   retrievedAt = new Date().toISOString(),
   season = DEFAULT_SEASON,
+  tieBreakGameweeks = [],
 } = {}) {
   validatePositiveInteger(leagueId, 'League ID');
   validateNonEmptyString(season, 'Season');
   validateIsoDate(retrievedAt);
 
-  const entries = await fetchLeagueEntries(fetchFn, leagueId);
+  const { cupLeagueId, entries } = await fetchLeagueEntries(fetchFn, leagueId);
   const participants = entries.map(createParticipant);
   const histories = await Promise.all(
     participants.map(async (participant) => ({
@@ -30,9 +32,26 @@ export async function importSeasonData({
       participant,
     })),
   );
+  const endedGameweeks = await fetchEndedGameweeks(fetchFn);
+  const gameweeks = createGameweeks(histories).map((gameweek) => ({
+    ended: endedGameweeks.has(gameweek.gameweek),
+    ...gameweek,
+  }));
+
+  for (const gameweek of gameweeks) {
+    if (tieBreakGameweeks.includes(gameweek.gameweek)) {
+      await addTieBreakStats(fetchFn, gameweek, participants);
+    }
+  }
+
+  const fplCup =
+    cupLeagueId === null
+      ? undefined
+      : await fetchFplCup(fetchFn, cupLeagueId, participants, logWarning);
 
   return {
-    gameweeks: createGameweeks(histories),
+    ...(fplCup ? { fplCup } : {}),
+    gameweeks,
     participants,
     season,
     source: {
@@ -40,6 +59,207 @@ export async function importSeasonData({
       retrievedAt,
     },
   };
+}
+
+/**
+ * Reads the Quids In Cup Gameweeks from the committed draw so the importer
+ * only fetches tie-break data for the Gameweeks that need it.
+ */
+export async function loadTieBreakGameweeks(drawPath) {
+  const drawFile = JSON.parse(await readFile(drawPath, 'utf8'));
+
+  return drawFile.cups.flatMap(({ round1Fixtures, startGameweek }) => {
+    const roundCount = Math.log2(round1Fixtures.length * 2);
+
+    return Array.from(
+      { length: roundCount },
+      (_, index) => startGameweek + index,
+    );
+  });
+}
+
+async function fetchEndedGameweeks(fetchFn) {
+  const bootstrap = await fetchJson(
+    fetchFn,
+    '/bootstrap-static/',
+    'Gameweek status',
+  );
+
+  if (!bootstrap || !Array.isArray(bootstrap.events)) {
+    throw new Error('Malformed Gameweek status payload');
+  }
+
+  return new Set(
+    bootstrap.events
+      .filter(
+        (event) =>
+          event && event.finished === true && event.data_checked === true,
+      )
+      .map((event) => event.id),
+  );
+}
+
+/**
+ * Adds FPL cup tie-break totals to each score: goals scored and goals
+ * conceded by the players who counted towards the score after automatic
+ * substitutions. Captaincy multipliers are deliberately ignored.
+ */
+async function addTieBreakStats(fetchFn, gameweek, participants) {
+  const live = await fetchJson(
+    fetchFn,
+    `/event/${gameweek.gameweek}/live/`,
+    `live stats for Gameweek ${gameweek.gameweek}`,
+  );
+
+  if (!live || !Array.isArray(live.elements)) {
+    throw new Error(
+      `Malformed live stats payload for Gameweek ${gameweek.gameweek}`,
+    );
+  }
+
+  const statsByElement = new Map(
+    live.elements.map((element) => [element.id, element.stats ?? {}]),
+  );
+
+  for (const participant of participants) {
+    const picks = await fetchJson(
+      fetchFn,
+      `/entry/${participant.id}/event/${gameweek.gameweek}/picks/`,
+      `picks for entry ${participant.id} in Gameweek ${gameweek.gameweek}`,
+    );
+    const countedElements = getCountedElements(
+      picks,
+      participant.id,
+      gameweek.gameweek,
+    );
+    let goalsScored = 0;
+    let goalsConceded = 0;
+
+    for (const element of countedElements) {
+      const stats = statsByElement.get(element);
+
+      goalsScored += stats?.goals_scored ?? 0;
+      goalsConceded += stats?.goals_conceded ?? 0;
+    }
+
+    validateNonNegativeInteger(
+      goalsScored,
+      `Goals scored for entry ${participant.id}`,
+    );
+    validateNonNegativeInteger(
+      goalsConceded,
+      `Goals conceded for entry ${participant.id}`,
+    );
+    gameweek.scores[participant.id] = {
+      ...gameweek.scores[participant.id],
+      goalsConceded,
+      goalsScored,
+    };
+  }
+}
+
+function getCountedElements(picks, participantId, gameweekNumber) {
+  if (!picks || !Array.isArray(picks.picks)) {
+    throw new Error(
+      `Malformed picks payload for entry ${participantId} in Gameweek ${gameweekNumber}`,
+    );
+  }
+
+  const countedPositions = picks.active_chip === 'bboost' ? 15 : 11;
+  const counted = new Set(
+    picks.picks
+      .filter((pick) => pick.position <= countedPositions)
+      .map((pick) => pick.element),
+  );
+
+  for (const substitution of picks.automatic_subs ?? []) {
+    counted.delete(substitution.element_out);
+    counted.add(substitution.element_in);
+  }
+
+  return counted;
+}
+
+/**
+ * Imports the official FPL League Cup once FPL has created it. A failure is
+ * reported as a warning rather than failing the whole import, so the
+ * scoreboard can still deploy if FPL's cup endpoint is unavailable.
+ */
+async function fetchFplCup(fetchFn, cupLeagueId, participants, logWarning) {
+  try {
+    const participantIds = new Set(participants.map(({ id }) => id));
+    const matchesById = new Map();
+    let page = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const response = await fetchJson(
+        fetchFn,
+        `/leagues-h2h-matches/league/${cupLeagueId}/?page=${page}`,
+        `FPL League Cup matches page ${page}`,
+      );
+
+      if (
+        !response ||
+        !Array.isArray(response.results) ||
+        typeof response.has_next !== 'boolean'
+      ) {
+        throw new Error(
+          `Malformed FPL League Cup matches payload for page ${page}`,
+        );
+      }
+
+      for (const result of response.results) {
+        const match = createFplCupMatch(result, participantIds);
+
+        matchesById.set(match.id, match);
+      }
+
+      hasNextPage = response.has_next;
+      page += 1;
+    }
+
+    return {
+      cupLeagueId,
+      matches: [...matchesById.values()].sort(
+        (left, right) => left.id - right.id,
+      ),
+    };
+  } catch (error) {
+    logWarning(`Skipping FPL League Cup import: ${getErrorMessage(error)}`);
+
+    return undefined;
+  }
+}
+
+function createFplCupMatch(result, participantIds) {
+  if (!result || typeof result !== 'object') {
+    throw new Error('Malformed FPL League Cup match');
+  }
+
+  validatePositiveInteger(result.id, 'FPL League Cup match ID');
+  validatePositiveInteger(
+    result.event,
+    `Gameweek for FPL League Cup match ${result.id}`,
+  );
+
+  const match = {
+    entry1: result.entry_1_entry ?? null,
+    entry1Points: result.entry_1_points ?? null,
+    entry2: result.entry_2_entry ?? null,
+    entry2Points: result.entry_2_points ?? null,
+    gameweek: result.event,
+    id: result.id,
+    isBye: result.is_bye === true,
+    ...(typeof result.knockout_name === 'string' && result.knockout_name !== ''
+      ? { knockoutName: result.knockout_name }
+      : {}),
+    winner: result.winner ?? null,
+  };
+
+  validateFplCupMatch(match, participantIds);
+
+  return match;
 }
 
 async function writeSeasonSnapshot(outputPath, seasonData) {
@@ -65,6 +285,7 @@ async function writeSeasonSnapshot(outputPath, seasonData) {
 
 async function fetchLeagueEntries(fetchFn, leagueId) {
   const entries = [];
+  let cupLeagueId = null;
   let page = 1;
   let hasNextPage = true;
 
@@ -86,6 +307,10 @@ async function fetchLeagueEntries(fetchFn, leagueId) {
       throw new Error(`Malformed standings payload for page ${page}`);
     }
 
+    if (page === 1 && Number.isInteger(response.league?.cup_league)) {
+      cupLeagueId = response.league.cup_league;
+    }
+
     entries.push(...standings.results);
     hasNextPage = standings.has_next;
     page += 1;
@@ -95,7 +320,7 @@ async function fetchLeagueEntries(fetchFn, leagueId) {
     throw new Error(`League ${leagueId} has no standings entries`);
   }
 
-  return entries;
+  return { cupLeagueId, entries };
 }
 
 async function fetchJson(fetchFn, path, description) {
@@ -110,7 +335,9 @@ async function fetchJson(fetchFn, path, description) {
     } catch (error) {
       lastError = new Error(
         `FPL request failed for ${description}: ${getErrorMessage(error)}`,
-        { cause: error },
+        {
+          cause: error,
+        },
       );
     }
 
@@ -146,7 +373,9 @@ async function fetchJson(fetchFn, path, description) {
   } catch (error) {
     throw new Error(
       `FPL returned invalid JSON for ${description}: ${getErrorMessage(error)}`,
-      { cause: error },
+      {
+        cause: error,
+      },
     );
   }
 }
@@ -157,8 +386,14 @@ function createParticipant(entry) {
   }
 
   validatePositiveInteger(entry.entry, 'FPL entry ID');
-  validateNonEmptyString(entry.player_name, `Player name for entry ${entry.entry}`);
-  validateNonEmptyString(entry.entry_name, `Team name for entry ${entry.entry}`);
+  validateNonEmptyString(
+    entry.player_name,
+    `Player name for entry ${entry.entry}`,
+  );
+  validateNonEmptyString(
+    entry.entry_name,
+    `Team name for entry ${entry.entry}`,
+  );
 
   return {
     id: entry.entry,
@@ -172,11 +407,18 @@ function createGameweeks(histories) {
   const gameweekNumbers = new Set();
 
   for (const { history, participant } of histories) {
-    if (!history || typeof history !== 'object' || !Array.isArray(history.current)) {
+    if (
+      !history ||
+      typeof history !== 'object' ||
+      !Array.isArray(history.current)
+    ) {
       throw new Error(`Malformed history payload for entry ${participant.id}`);
     }
 
-    const chipsByGameweek = createChipsByGameweek(history.chips, participant.id);
+    const chipsByGameweek = createChipsByGameweek(
+      history.chips,
+      participant.id,
+    );
     const scoresByGameweek = new Map();
 
     for (const score of history.current) {
@@ -244,7 +486,10 @@ function createChipsByGameweek(chips, participantId) {
       throw new Error(`Malformed chip history for entry ${participantId}`);
     }
 
-    validatePositiveInteger(chip.event, `Chip Gameweek for entry ${participantId}`);
+    validatePositiveInteger(
+      chip.event,
+      `Chip Gameweek for entry ${participantId}`,
+    );
     validateNonEmptyString(chip.name, `Chip name for entry ${participantId}`);
 
     if (chipsByGameweek.has(chip.event)) {
@@ -276,11 +521,61 @@ function validateHistoryScore(score, participantId) {
   );
 
   if (score.value !== undefined) {
-    validateNonNegativeInteger(score.value, `Squad value for entry ${participantId}`);
+    validateNonNegativeInteger(
+      score.value,
+      `Squad value for entry ${participantId}`,
+    );
   }
 
   if (score.bank !== undefined) {
     validateNonNegativeInteger(score.bank, `Bank for entry ${participantId}`);
+  }
+
+  if (score.goalsScored !== undefined) {
+    validateNonNegativeInteger(
+      score.goalsScored,
+      `Goals scored for entry ${participantId}`,
+    );
+  }
+
+  if (score.goalsConceded !== undefined) {
+    validateNonNegativeInteger(
+      score.goalsConceded,
+      `Goals conceded for entry ${participantId}`,
+    );
+  }
+}
+
+function validateFplCupMatch(match, participantIds) {
+  for (const [value, name] of [
+    [match.entry1, 'first entry'],
+    [match.entry2, 'second entry'],
+    [match.winner, 'winner'],
+  ]) {
+    if (value === null) {
+      continue;
+    }
+
+    validatePositiveInteger(value, `FPL League Cup match ${match.id} ${name}`);
+
+    if (!participantIds.has(value)) {
+      throw new Error(
+        `FPL League Cup match ${match.id} contains unknown entry ${value}`,
+      );
+    }
+  }
+
+  for (const [value, name] of [
+    [match.entry1Points, 'first entry points'],
+    [match.entry2Points, 'second entry points'],
+  ]) {
+    if (value !== null) {
+      validateFiniteNumber(value, `FPL League Cup match ${match.id} ${name}`);
+    }
+  }
+
+  if (match.entry1 === null && match.entry2 === null) {
+    throw new Error(`FPL League Cup match ${match.id} has no entries`);
   }
 }
 
@@ -293,11 +588,17 @@ function validateSeasonData(seasonData) {
   validatePositiveInteger(seasonData.source?.leagueId, 'Source league ID');
   validateIsoDate(seasonData.source?.retrievedAt);
 
-  if (!Array.isArray(seasonData.participants) || seasonData.participants.length === 0) {
+  if (
+    !Array.isArray(seasonData.participants) ||
+    seasonData.participants.length === 0
+  ) {
     throw new Error('Season data must contain participants');
   }
 
-  if (!Array.isArray(seasonData.gameweeks) || seasonData.gameweeks.length === 0) {
+  if (
+    !Array.isArray(seasonData.gameweeks) ||
+    seasonData.gameweeks.length === 0
+  ) {
     throw new Error('Season data must contain Gameweeks');
   }
 
@@ -309,8 +610,14 @@ function validateSeasonData(seasonData) {
     }
 
     validatePositiveInteger(participant.id, 'Participant ID');
-    validateNonEmptyString(participant.name, `Name for entry ${participant.id}`);
-    validateNonEmptyString(participant.teamName, `Team name for entry ${participant.id}`);
+    validateNonEmptyString(
+      participant.name,
+      `Name for entry ${participant.id}`,
+    );
+    validateNonEmptyString(
+      participant.teamName,
+      `Team name for entry ${participant.id}`,
+    );
 
     if (participantIds.has(participant.id)) {
       throw new Error(`Duplicate participant ID: ${participant.id}`);
@@ -333,6 +640,12 @@ function validateSeasonData(seasonData) {
     }
 
     previousGameweek = gameweek.gameweek;
+
+    if (gameweek.ended !== undefined && typeof gameweek.ended !== 'boolean') {
+      throw new Error(
+        `Gameweek ${gameweek.gameweek} ended flag must be a boolean`,
+      );
+    }
 
     if (!gameweek.scores || typeof gameweek.scores !== 'object') {
       throw new Error(`Gameweek ${gameweek.gameweek} must contain scores`);
@@ -357,6 +670,37 @@ function validateSeasonData(seasonData) {
         participantId,
       );
     }
+  }
+
+  validateFplCupData(seasonData.fplCup, participantIds);
+}
+
+function validateFplCupData(fplCup, participantIds) {
+  if (fplCup === undefined) {
+    return;
+  }
+
+  validatePositiveInteger(fplCup?.cupLeagueId, 'FPL League Cup league ID');
+
+  if (!Array.isArray(fplCup.matches)) {
+    throw new Error('FPL League Cup matches must be an array');
+  }
+
+  const matchIds = new Set();
+
+  for (const match of fplCup.matches) {
+    validatePositiveInteger(match?.id, 'FPL League Cup match ID');
+    validatePositiveInteger(
+      match.gameweek,
+      `Gameweek for FPL League Cup match ${match.id}`,
+    );
+
+    if (matchIds.has(match.id)) {
+      throw new Error(`Duplicate FPL League Cup match ID: ${match.id}`);
+    }
+
+    matchIds.add(match.id);
+    validateFplCupMatch(match, participantIds);
   }
 }
 
@@ -408,7 +752,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const outputPath = process.argv[2] ?? `data/season-${DEFAULT_SEASON}.json`;
 
   try {
-    const seasonData = await importSeasonData();
+    const seasonData = await importSeasonData({
+      tieBreakGameweeks: await loadTieBreakGameweeks(
+        `data/cup-draw-${DEFAULT_SEASON}.json`,
+      ),
+    });
     await writeSeasonSnapshot(outputPath, seasonData);
     console.log(`Imported season data into ${resolve(outputPath)}`);
   } catch (error) {

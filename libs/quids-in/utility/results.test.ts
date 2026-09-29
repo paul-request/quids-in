@@ -357,6 +357,80 @@ describe('calculateSeasonLeaderboard', () => {
           },
         ]);
       });
+
+      it('adds £1 per cup to the season contribution before any cup has started', () => {
+        const result = calculateSeasonBalances(
+          participants,
+          [gameweek({ '1': 72, '2': 61, '3': 50 })],
+          [{ startGameweek: 16 }, { startGameweek: 35 }]
+        );
+
+        expect(result.find((row) => row.participantId === 2)).toEqual({
+          participantId: 2,
+          grossWinningsPennies: 0,
+          netBalancePennies: -4000,
+          weeklyBalancePennies: -100,
+        });
+      });
+
+      it('deducts a cup entry from the current balance from its first Gameweek', () => {
+        const gameweeks = [
+          gameweek({ '1': 72, '2': 61, '3': 50 }),
+          { gameweek: 2, scores: createScores({ '1': 72, '2': 61, '3': 50 }) },
+        ];
+        const result = calculateSeasonBalances(participants, gameweeks, [
+          { startGameweek: 2 },
+          { startGameweek: 3 },
+        ]);
+
+        expect(result.find((row) => row.participantId === 3)).toEqual({
+          participantId: 3,
+          grossWinningsPennies: 0,
+          netBalancePennies: -4000,
+          weeklyBalancePennies: -300,
+        });
+      });
+
+      it('credits the whole cup pot to the champion and keeps penny totals exact', () => {
+        const gameweeks = [
+          gameweek({ '1': 72, '2': 61, '3': 50 }),
+          { gameweek: 2, scores: createScores({ '1': 72, '2': 61, '3': 50 }) },
+        ];
+        const result = calculateSeasonBalances(participants, gameweeks, [
+          { startGameweek: 1, winnerParticipantId: 3 },
+          { startGameweek: 2, winnerParticipantId: 2 },
+        ]);
+
+        expect(result).toEqual([
+          {
+            participantId: 1,
+            grossWinningsPennies: 600,
+            netBalancePennies: -3400,
+            weeklyBalancePennies: 200,
+          },
+          {
+            participantId: 2,
+            grossWinningsPennies: 300,
+            netBalancePennies: -3700,
+            weeklyBalancePennies: -100,
+          },
+          {
+            participantId: 3,
+            grossWinningsPennies: 300,
+            netBalancePennies: -3700,
+            weeklyBalancePennies: -100,
+          },
+        ]);
+        expect(result.reduce((total, row) => total + row.grossWinningsPennies, 0)).toBe(
+          (gameweeks.length + 2) * participants.length * 100
+        );
+      });
+
+      it('rejects a cup winner who is not a participant', () => {
+        expect(() =>
+          calculateSeasonBalances(participants, [], [{ startGameweek: 1, winnerParticipantId: 99 }])
+        ).toThrow('Invalid cup winner participant ID: 99');
+      });
     });
 
     it('treats missing scores as zero and includes every participant', () => {
@@ -567,6 +641,18 @@ describe('calculatePlayerStats', () => {
     );
 
     expect(result?.averageLeaguePosition).toBe(1);
+  });
+
+  it('includes cup money in the player balances', () => {
+    const result = calculatePlayerStats(
+      participants,
+      [gameweek({ '1': 50, '2': 30, '3': 10 })],
+      2,
+      [{ startGameweek: 1, winnerParticipantId: 2 }]
+    );
+
+    expect(result?.seasonBalancePennies).toBe(-3600);
+    expect(result?.currentBalancePennies).toBe(100);
   });
 });
 

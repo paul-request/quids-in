@@ -1,12 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import historicalSeason from '../../../data/season-2025-26.json';
+import type { CupDrawFile } from '../utility/cups.interfaces';
 import type { Season } from '../utility/results.interfaces';
 
 import App from './App.svelte';
 
-function renderApp(seasonData: Season = historicalSeason): void {
-  render(App, { props: { seasonData } });
+function renderApp(seasonData: Season = historicalSeason, cupDraw?: CupDrawFile): void {
+  render(App, { props: cupDraw ? { cupDraw, seasonData } : { seasonData } });
 }
 
 const emptySeason: Season = {
@@ -39,6 +40,20 @@ const statsSeason: Season = {
     { id: 1, name: 'Alice', teamName: 'Aces High' },
     { id: 2, name: 'Ben', teamName: 'Biscuit Boys' },
   ],
+  season: '2025-26',
+};
+
+const cupDraw: CupDrawFile = {
+  cups: [
+    {
+      id: 'quids-in-cup',
+      name: 'Quids In Cup',
+      revealAfterGameweek: 2,
+      round1Fixtures: [{ fixture: 1, participantIds: [1, 2] }],
+      startGameweek: 3,
+    },
+  ],
+  generatedAt: '2026-09-29T00:00:00.000Z',
   season: '2025-26',
 };
 
@@ -183,5 +198,65 @@ describe('App', () => {
     renderApp(statsSeason);
 
     expect(screen.getByRole('heading', { name: 'Player stats unavailable' })).toBeTruthy();
+  });
+
+  it('should link to the cups and show hidden pairings until the reveal Gameweek ends', async () => {
+    window.location.hash = '#/';
+    renderApp(statsSeason, cupDraw);
+
+    const cupsLink = screen.getByRole('link', { name: 'Cups' });
+
+    expect(cupsLink.getAttribute('href')).toBe('#/cups');
+
+    window.location.hash = '#/cups';
+    await fireEvent(window, new HashChangeEvent('hashchange'));
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Cups' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'quids-in home' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Quids In Cup' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'FPL League Cup' })).toBeTruthy();
+    expect(
+      Array.from(document.querySelectorAll('.cup-bracket__meta')).map((node) =>
+        node.textContent?.replace(/\s+/g, ' ').trim()
+      )
+    ).toContain('Begins Gameweek 3 (Revealed after gameweek 2)');
+    expect(
+      Array.from(document.querySelectorAll('.cup-bracket__meta')).map((node) =>
+        node.textContent?.replace(/\s+/g, ' ').trim()
+      )
+    ).toContain('Begins Gameweek 35 (Draw not yet made)');
+    expect(screen.queryByRole('link', { name: 'Alice Aces High' })).toBeNull();
+
+    await fireEvent.click(screen.getByRole('link', { name: 'Dashboard' }));
+    window.location.hash = '#/';
+    await fireEvent(window, new HashChangeEvent('hashchange'));
+
+    expect(screen.getByRole('heading', { name: 'Gameweek 2' })).toBeTruthy();
+  });
+
+  it('should reveal cup pairings once the reveal Gameweek has ended', () => {
+    window.location.hash = '#/cups';
+    renderApp(
+      {
+        ...statsSeason,
+        gameweeks: statsSeason.gameweeks.map((gameweek) => ({ ...gameweek, ended: true })),
+      },
+      cupDraw
+    );
+
+    expect(screen.getByRole('link', { name: 'Alice Aces High' })).toBeTruthy();
+    expect(screen.getByText(/^Begins Gameweek 3$/)).toBeTruthy();
+  });
+
+  it('should include the cup entry fees in the season balance', () => {
+    renderApp(statsSeason, cupDraw);
+
+    expect(screen.getAllByRole('cell', { name: '-£40.00' })).toHaveLength(1);
+  });
+
+  it('should hide the cups link for a season without a cup draw', () => {
+    renderApp(statsSeason);
+
+    expect(screen.queryByRole('link', { name: 'Cups' })).toBeNull();
   });
 });

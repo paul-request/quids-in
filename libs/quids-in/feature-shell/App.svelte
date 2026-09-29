@@ -1,7 +1,10 @@
 <script lang="ts">
   import { untrack } from 'svelte';
 
+  import cupDrawFile from '../../../data/cup-draw-2026-27.json';
   import season from '../../../data/season-2026-27.json';
+  import { applyCupReveal, buildSeasonCups, getCupPrizes } from '../utility/cups';
+  import type { CupDrawFile } from '../utility/cups.interfaces';
   import {
     calculateBiggestSlugs,
     calculateGameweekStats,
@@ -24,8 +27,12 @@
   import SeasonBalanceCard from './SeasonBalanceCard.svelte';
   import StandingsCard from './StandingsCard.svelte';
   import PlayerStats from './PlayerStats.svelte';
+  import CupsPage from './CupsPage.svelte';
 
-  let { seasonData = season }: { seasonData?: Season } = $props();
+  let {
+    seasonData = season,
+    cupDraw = cupDrawFile,
+  }: { seasonData?: Season; cupDraw?: CupDrawFile } = $props();
 
   let participantsById = $derived(indexParticipantsById(seasonData.participants));
   let leaderboard = $derived(
@@ -37,8 +44,11 @@
   let averageWeeklyPosition = $derived(
     calculateAverageWeeklyPosition(seasonData.participants, seasonData.gameweeks),
   );
+  let cupBrackets = $derived(buildSeasonCups(cupDraw, seasonData));
+  let cupPrizes = $derived(getCupPrizes(cupBrackets));
+  let displayedCups = $derived(cupBrackets.map(applyCupReveal));
   let seasonBalances = $derived(
-    calculateSeasonBalances(seasonData.participants, seasonData.gameweeks),
+    calculateSeasonBalances(seasonData.participants, seasonData.gameweeks, cupPrizes),
   );
   let latestGameweek = $derived(
     seasonData.gameweeks[seasonData.gameweeks.length - 1],
@@ -68,7 +78,12 @@
   let playerStats = $derived(
     playerId === undefined
       ? undefined
-      : calculatePlayerStats(seasonData.participants, seasonData.gameweeks, playerId),
+      : calculatePlayerStats(
+          seasonData.participants,
+          seasonData.gameweeks,
+          playerId,
+          cupPrizes,
+        ),
   );
   let selectedPlayerBalance = $derived(
     playerId === undefined
@@ -106,9 +121,15 @@
     balance={selectedPlayerBalance}
     teamValue={selectedPlayerTeamValue}
   />
+{:else if currentHash === '#/cups'}
+  <CupsPage
+    cups={displayedCups}
+    latestGameweek={latestGameweek?.gameweek}
+    {participantsById}
+  />
 {:else}
 <main class="page">
-  <Header />
+  <Header action={displayedCups.length > 0 ? 'cups' : 'none'} />
 
   <div class="dashboard-layout">
     {#if latestGameweek && selectedGameweek}

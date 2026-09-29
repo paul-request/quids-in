@@ -38,7 +38,7 @@ no server we have to maintain, pay for, or keep alive.
   state to toggle ascending and descending order; sorting remains client-side
   and derives from the existing build-time season snapshot.
 - **Routing:** Player stats uses hash routes in the form
-  `/#/players/:participantId`. Hash routing keeps direct and refreshed links
+  `/#/players/:participantId`, and the Cups page (Phase 12) uses `/#/cups`. Hash routing keeps direct and refreshed links
   compatible with GitHub Pages without server-side fallback configuration.
 - **Dependency locking:** `package-lock.json` is committed to the repo (not
   gitignored) so `npm install` is reproducible across machines and in the
@@ -68,6 +68,22 @@ no server we have to maintain, pay for, or keep alive.
   every Tuesday and on manual dispatch, uploading a timestamped JSON artifact
   only. It does not commit generated data to `main` and does not deploy the
   app. Deployment integration is deferred to Phase 10.
+- **Phase 12 knockout cups:**
+  - The Quids In Cup draw is a separate committed file,
+    `data/cup-draw-2026-27.json`. It is generated once by a local script
+    that uses a cryptographically secure random source, and the importer
+    never overwrites it.
+  - The importer also records each Gameweek's `ended` flag (FPL
+    `finished && data_checked`), per-participant `goalsScored` and
+    `goalsConceded` for Quids In Cup Gameweeks (from the `picks` and
+    `event/{gw}/live` endpoints), and the official FPL League Cup matches
+    (from the league's `cup_league` and the `leagues-h2h-matches`
+    endpoint; fail-soft, so a failure only logs a warning).
+  - Cup brackets, winners, tie-breaks, and cup money are derived at runtime
+    and are not stored.
+  - Before the reveal Gameweek, pairings are obfuscated with a CSS `filter`
+    blur, which is presentation-only. The draw is readable in the page
+    HTML, the public repo, and the bundle.
 - Each season JSON file is loaded at build time (bundled into the static site),
   so there's no runtime fetch, no CORS concerns, and no server to query.
 

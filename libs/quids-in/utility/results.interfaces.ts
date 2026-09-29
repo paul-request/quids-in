@@ -7,6 +7,8 @@ export interface Participant {
 export interface GameweekScore {
   bank?: number;
   chip?: string;
+  goalsConceded?: number;
+  goalsScored?: number;
   points: number;
   squadValue?: number;
   transferCost: number;
@@ -14,15 +16,34 @@ export interface GameweekScore {
 }
 
 export interface Gameweek {
+  ended?: boolean;
   gameweek: number;
   scores: Record<string, GameweekScore>;
 }
 
 export interface Season {
+  fplCup?: FplCup;
   gameweeks: Array<Gameweek>;
   participants: Array<Participant>;
   season: string;
   source?: SeasonSource;
+}
+
+export interface FplCup {
+  cupLeagueId: number;
+  matches: Array<FplCupMatch>;
+}
+
+export interface FplCupMatch {
+  entry1: number | null;
+  entry1Points: number | null;
+  entry2: number | null;
+  entry2Points: number | null;
+  gameweek: number;
+  id: number;
+  isBye: boolean;
+  knockoutName?: string;
+  winner: number | null;
 }
 
 export interface SeasonSource {

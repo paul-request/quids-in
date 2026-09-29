@@ -114,6 +114,25 @@ contains:
 `squadValue` and `bank` are omitted when the FPL history response does not
 include them; missing values must not be treated as zero.
 
+### Knockout cups (Phase 12)
+
+See [specs/2026-09-29-knockout-cups](./specs/2026-09-29-knockout-cups/requirements.md).
+The cups are shown at `#/cups`, linked from the dashboard. The importer adds
+these optional fields:
+
+- `gameweeks[].ended`: `true` once FPL marks the Gameweek `finished` and
+  `data_checked`;
+- `goalsScored` and `goalsConceded` on scores in Quids In Cup Gameweeks
+  (16–19), used for tie-breaks;
+- top-level `fplCup`: the official FPL League Cup matches, present once FPL
+  creates the cup. If the FPL cup request fails, the importer logs a warning
+  and omits `fplCup` instead of failing the run.
+
+The Quids In Cup draw lives in `data/cup-draw-2026-27.json`. It is generated
+once with `npm run generate:cup-draw` and committed, and must never be
+regenerated or hand-edited after it is committed (the script refuses to
+overwrite an existing draw unless given `--force`).
+
 The importer is the source of truth for these values. Do not hand-edit
 derived scoreboard values as part of the normal weekly workflow. The
 scheduled workflow and manual workflow-dispatch run upload a timestamped

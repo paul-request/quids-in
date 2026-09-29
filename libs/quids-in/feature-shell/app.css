@@ -74,6 +74,10 @@ a:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .header-button {
+    transition: none;
+  }
+
   .player-team-link:hover .player-team-link__name,
   .player-team-link:hover .player-team-link__team {
     color: #ffe36e;
@@ -100,10 +104,42 @@ a:focus-visible {
 }
 
 .app-header {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  column-gap: 0.5rem;
+  align-items: center;
   width: 100%;
   margin-bottom: 2rem;
+}
+
+.app-header .brand {
+  grid-column: 2;
+}
+
+.app-header__actions {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.header-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #3a4a80;
+  border-radius: 999px;
+  color: #f5f7fb;
+  background: #111a38;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.header-button:hover {
+  border-color: #ffe36e;
+  background: #1a2550;
 }
 
 .brand {
@@ -324,13 +360,169 @@ a:focus-visible {
   font-weight: 700;
 }
 
-.back-link {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-}
-
 .summary-grid > .dashboard-section {
   min-width: 0;
+}
+
+.cups-page__heading {
+  margin: 0 0 1rem;
+}
+
+.cups-page__list {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.cup-bracket {
+  min-width: 0;
+}
+
+.cup-bracket__heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.cup-bracket__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.125rem 0 0;
+  color: #c8d4ff;
+  font-size: 0.875rem;
+}
+
+.cup-bracket__status {
+  font-size: 0.75rem;
+}
+
+.cup-rounds,
+.cup-ties,
+.cup-tie__slots {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cup-rounds {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  min-width: 0;
+}
+
+.cup-round {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cup-round__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.cup-round__gameweek {
+  color: #c8d4ff;
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.cup-ties {
+  display: grid;
+  flex: 1;
+  gap: 0.5rem;
+  align-content: space-around;
+}
+
+.cup-tie {
+  min-width: 0;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #26345f;
+  border-radius: 0.75rem;
+  background: #0b1127;
+}
+
+.cup-tie--provisional {
+  border-color: #9de3c2;
+}
+
+.cup-tie__label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  color: #c8d4ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cup-tie__state {
+  color: #9de3c2;
+}
+
+.cup-slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  min-width: 0;
+}
+
+.cup-slot + .cup-slot {
+  border-top: 1px solid #1c2748;
+}
+
+.cup-slot .player-team-link {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cup-slot__obfuscated {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.125rem;
+  min-height: 2.5rem;
+  color: #f5f7fb;
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cup-slot__obfuscated span {
+  color: #c8d4ff;
+  font-size: 0.8125rem;
+}
+
+.cup-slot__placeholder {
+  color: #9aa5c4;
+  font-style: italic;
+}
+
+.cup-slot__score {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cup-slot--winner .cup-slot__score {
+  color: #ffe36e;
+}
+
+.cup-tie__reason {
+  margin: 0.25rem 0 0;
+  color: #c8d4ff;
+  font-size: 0.8125rem;
 }
 
 .empty-card-message {
@@ -493,6 +685,24 @@ tbody tr:last-child td {
     margin-bottom: 1.5rem;
   }
 
+  .app-header--with-actions {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .app-header--with-actions .brand {
+    grid-column: 1;
+  }
+
+  .app-header--with-actions .app-header__actions {
+    grid-column: 2;
+  }
+
+  .header-button {
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
   .dashboard-section,
   .empty-state {
     padding: 1rem;
@@ -539,6 +749,11 @@ tbody tr:last-child td {
 @media (min-width: 64rem) {
   .dashboard-layout {
     display: block;
+  }
+
+  .cup-rounds {
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
   }
 
   .gameweek-card,

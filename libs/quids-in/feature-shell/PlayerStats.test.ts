@@ -34,7 +34,8 @@ describe('PlayerStats', () => {
     expect(screen.getByText('-£1.00')).toBeTruthy();
     expect(screen.getByText('Team value')).toBeTruthy();
     expect(screen.getByText('£101.5m')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Back to dashboard' })).toHaveProperty('hash', '#/');
+    expect(screen.getByRole('link', { name: 'quids-in home' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveProperty('hash', '#/');
   });
 
   it('renders an explicit unavailable label when team value has not been recorded', () => {

@@ -10,6 +10,10 @@ import type {
   PlayerStats,
   TeamValue,
 } from './results.interfaces';
+import type { CupPrize } from './cups.interfaces';
+
+const SEASON_GAMEWEEK_COUNT = 38;
+const ENTRY_FEE_PENNIES = 100;
 
 interface ParticipantIndex {
   order: Map<number, number>;
@@ -214,17 +218,44 @@ export function calculateAverageWeeklyPosition(
     }));
 }
 
+/**
+ * Calculates each participant's balances. Everyone pays £1 per Gameweek and
+ * £1 per cup, so the season contribution is £1 × (38 + number of cups). A
+ * cup's £1 counts towards the current balance from its first Gameweek, and
+ * its whole pot is credited to the champion once the final is decided.
+ */
 export function calculateSeasonBalances(
   participants: Array<Participant>,
-  gameweeks: Array<Gameweek>
+  gameweeks: Array<Gameweek>,
+  cupPrizes: Array<CupPrize> = []
 ): Array<SeasonBalanceRow> {
   validateCollection(participants, 'participants');
   validateCollection(gameweeks, 'Gameweeks');
   const participantIndex = createParticipantIndex(participants);
   validateGameweekOrder(gameweeks);
   const grossWinningsPennies = new Map(participants.map(({ id }) => [id, 0]));
-  const weeklyPotPennies = participants.length * 100;
+  const weeklyPotPennies = participants.length * ENTRY_FEE_PENNIES;
   const recordedGameweekCount = gameweeks.length;
+  const latestGameweek = gameweeks[gameweeks.length - 1]?.gameweek ?? 0;
+  const startedCupCount = cupPrizes.filter(
+    ({ startGameweek }) => startGameweek <= latestGameweek
+  ).length;
+  const seasonContributionPennies = (SEASON_GAMEWEEK_COUNT + cupPrizes.length) * ENTRY_FEE_PENNIES;
+
+  for (const { winnerParticipantId } of cupPrizes) {
+    if (winnerParticipantId === undefined) {
+      continue;
+    }
+
+    if (!participantIndex.ids.has(winnerParticipantId)) {
+      throw new Error(`Invalid cup winner participant ID: ${winnerParticipantId}`);
+    }
+
+    grossWinningsPennies.set(
+      winnerParticipantId,
+      (grossWinningsPennies.get(winnerParticipantId) ?? 0) + weeklyPotPennies
+    );
+  }
 
   for (const gameweek of gameweeks) {
     const result = calculateGameweekResult(participants, gameweek);
@@ -248,8 +279,9 @@ export function calculateSeasonBalances(
       return {
         participantId: id,
         grossWinningsPennies: grossWinnings,
-        netBalancePennies: grossWinnings - 3800,
-        weeklyBalancePennies: grossWinnings - recordedGameweekCount * 100,
+        netBalancePennies: grossWinnings - seasonContributionPennies,
+        weeklyBalancePennies:
+          grossWinnings - (recordedGameweekCount + startedCupCount) * ENTRY_FEE_PENNIES,
       };
     })
     .sort(
@@ -306,7 +338,8 @@ export function calculateGameweekStats(
 export function calculatePlayerStats(
   participants: Array<Participant>,
   gameweeks: Array<Gameweek>,
-  participantId: number
+  participantId: number,
+  cupPrizes: Array<CupPrize> = []
 ): PlayerStats | undefined {
   validateCollection(participants, 'participants');
   validateCollection(gameweeks, 'Gameweeks');
@@ -326,13 +359,15 @@ export function calculatePlayerStats(
       return [];
     }
 
-    return [{
-      gameweek: gameweek.gameweek,
-      points: score.points,
-      transfers: score.transfers,
-    }];
+    return [
+      {
+        gameweek: gameweek.gameweek,
+        points: score.points,
+        transfers: score.transfers,
+      },
+    ];
   });
-  const balance = calculateSeasonBalances(participants, gameweeks).find(
+  const balance = calculateSeasonBalances(participants, gameweeks, cupPrizes).find(
     (row) => row.participantId === participantId
   );
 
@@ -341,10 +376,7 @@ export function calculatePlayerStats(
   }
 
   const totalPoints = recordedScores.reduce((total, { points }) => total + points, 0);
-  const totalTransfers = recordedScores.reduce(
-    (total, { transfers }) => total + transfers,
-    0
-  );
+  const totalTransfers = recordedScores.reduce((total, { transfers }) => total + transfers, 0);
   const highestScore = Math.max(...recordedScores.map(({ points }) => points));
   const lowestScore = Math.min(...recordedScores.map(({ points }) => points));
   const totalPosition = gameweeks.reduce((total, gameweek) => {
@@ -405,10 +437,7 @@ export function calculateTeamValue(
   };
 }
 
-function getUsableScores(
-  gameweek: Gameweek,
-  participantIndex: ParticipantIndex
-): Array<number> {
+function getUsableScores(gameweek: Gameweek, participantIndex: ParticipantIndex): Array<number> {
   validateGameweek(gameweek, participantIndex, true);
 
   return Object.values(gameweek.scores).map(({ points }) => points);

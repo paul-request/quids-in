@@ -26,7 +26,19 @@ recognisable.
     Gameweek receives one loss.
   - Each participant's average finishing position across recorded Gameweeks.
   - Each participant's net season balance after prize winnings and the fixed
-    £38 season payment.
+    season payment (£38 for the Gameweeks, rising to £40 with the two
+    knockout cups).
+  - (Planned) Two knockout cups, each with one Gameweek per round:
+    - the **Quids In Cup**, which starts in GW16 and uses our own random draw;
+    - the official **FPL League Cup**, which starts in GW35 and uses FPL's
+      draw and results.
+
+    Each tie is won by the higher net score (points minus transfer cost).
+    Level scores are decided by FPL's cup rules: most goals scored, then
+    fewest goals conceded, then a coin toss. Everyone pays £1 per cup, and
+    the cup winner takes the pot. Pairings are shown blurred as a teaser
+    until the preceding Gameweek has ended.
+
   - (Planned) Player-level total points, average weekly score, and best and
     worst recorded scores with their Gameweeks.
 
