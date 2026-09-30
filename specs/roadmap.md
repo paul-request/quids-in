@@ -1,8 +1,8 @@
 # Roadmap
 
 Small, shippable phases. Each phase should run locally and be useful on
-its own before moving to the next. Deployment/hosting (GitHub Pages) is
-deliberately deferred until the app is built and refined — see Phase 10.
+its own before moving to the next. The app has been live on GitHub
+Pages since Phase 10; see Phase 13 for how each deployment imports data.
 
 ## Current status
 
@@ -27,20 +27,17 @@ deliberately deferred until the app is built and refined — see Phase 10.
   and mobile badge/heading abbreviations).
 - Phase 10 (GitHub Pages deployment) is complete: the repo lives at
   `paul-request/quids-in` and deploys to GitHub Pages.
-- Phase 12 (knockout cups) is implemented on branch `feature/knockout-cups`
-  (see [2026-09-29-knockout-cups](./2026-09-29-knockout-cups/requirements.md))
-  and is awaiting sign-off against its validation checklist. It is
-  prioritised **ahead of Phase 11**, and its Quids In Cup slice must be live
-  before Gameweek 15 ends. Phase 11 (historical seasons import) is not
-  yet started.
-- Phase 13 (fresh data on merge deployments) is implemented on branch
-  `fix/fresh-data-on-merge` (see
-  [2026-09-29-fresh-data-on-merge](./2026-09-29-fresh-data-on-merge/requirements.md)).
-  The daily import workflow is folded into `deploy-pages.yml`, so every
-  deployment imports fresh FPL data.
-- Phase 14 (FPL average in Gameweek stats) is implemented on branch
-  `feature/fpl-average` (see
-  [2026-09-30-fpl-average](./2026-09-30-fpl-average/requirements.md)).
+- Phase 12 (knockout cups) is merged (PRs #9 and #10 followed up on byes
+  and the blur); see
+  [2026-09-29-knockout-cups](./2026-09-29-knockout-cups/requirements.md).
+  Its validation checks against real cup Gameweeks are still pending. It was
+  prioritised **ahead of Phase 11** (historical seasons import), which is
+  not yet started.
+- Phase 13 (fresh data on merge deployments) is merged (PR #8); see
+  [2026-09-29-fresh-data-on-merge](./2026-09-29-fresh-data-on-merge/requirements.md).
+  Every deployment imports fresh FPL data.
+- Phase 14 (FPL average in Gameweek stats) is merged (PR #11); see
+  [2026-09-30-fpl-average](./2026-09-30-fpl-average/requirements.md).
 
 ## Phase 0 — Project scaffolding
 
@@ -60,7 +57,7 @@ deliberately deferred until the app is built and refined — see Phase 10.
 
 - Read the JSON file and render a simple list/table of the 12 participants
   (name, FPL team name).
-- **Done when:** the locally running site shows all 12 friends' details
+- **Done when:** the locally running site shows all 14 friends' details
   from the JSON file.
 
 ## Phase 2 — Winner logic (core rules engine)
@@ -451,15 +448,15 @@ Full detail:
 - The importer records FPL's overall `average_entry_score` for each ended
   Gameweek as `fplAverage`, using the existing `bootstrap-static` request.
 - The `Gameweek stats` card shows `FPL average` and
-  `Variance from FPL average` after `League average`. Both are hidden when
+  `Difference from FPL average` after `League average`. Both are hidden when
   no FPL average is recorded.
 - **Done when:** the card shows the FPL average for ended Gameweeks, the
   validation checklist is ticked, and `npm run validate` passes.
 
 ## Explicitly deferred / not planned
 
-- Live/automatic FPL API integration or automatic score fetching while the
-  app is running (Phase 11's historical import is a one-off manual backfill
+- Runtime/browser-side FPL API integration or score fetching while the app
+  is running (build-time imports on deployment are in scope; see Phase 13) (Phase 11's historical import is a one-off manual backfill
   script, not a live fetch, so it doesn't count as this).
 - Any authentication, accounts, or multi-group support.
 - Any real payment/money movement (Phase 6 is display-only balance tracking).

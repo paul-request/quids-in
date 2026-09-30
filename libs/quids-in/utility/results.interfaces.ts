@@ -99,8 +99,8 @@ export interface AvailableGameweekStats {
   leagueAverage: number;
   lowestScore: number;
   spread: number;
-  varianceFromFplAverage?: number;
-  varianceFromSeasonAverage: number;
+  differenceFromFplAverage?: number;
+  differenceFromSeasonAverage: number;
 }
 
 export interface UnavailableGameweekStats {

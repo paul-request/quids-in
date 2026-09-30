@@ -2,7 +2,7 @@
 
 ## What is quids-in?
 
-quids-in is a small, just-for-fun companion app for a group of 12 friends who
+quids-in is a small, just-for-fun companion app for a group of 14 friends who
 play Fantasy Premier League (FPL) together, but with our own weekly twist
 on top of the normal FPL rules. The app uses a custom logo to give the
 project a clear identity and make the weekly leaderboard feel branded and
@@ -51,22 +51,22 @@ a scoreboard/record-keeper, not a fantasy football engine.
 
 ## Who it's for
 
-A private group of 12 friends. Not a public product. No need for accounts,
+A private group of 14 friends. Not a public product. No need for accounts,
 sign-up, or general users beyond this group.
 
 ## What quids-in is NOT
 
 - The **running app** is **not** a live FPL data puller — it never calls the
-  FPL API, has no login/authentication with FPL, and only ever reads the
-  static JSON already committed to the repo. A separate, offline import
-  script (and a scheduled GitHub Actions job) may fetch a fresh snapshot
-  from FPL's public endpoints, but that snapshot only reaches the app's
-  data if a person reviews it and commits it — automation never updates
-  the live app's data on its own.
+  FPL API from the browser, has no backend, and has no login/authentication
+  with FPL. It only reads static JSON bundled at build time. Each
+  deployment (on merge, daily, or manual) runs an import script that fetches
+  a fresh snapshot from FPL's public endpoints, validates it, and bundles it
+  into the static site. The snapshot committed to the repo is a development
+  and test baseline, not the live data.
 - It is **not** a general-purpose fantasy football platform.
 - It does not need to support arbitrary leagues, arbitrary numbers of
   players, or multiple concurrent groups. It is built for this one group
-  of 12 friends.
+  of 14 friends.
 
 ## Core principles
 
@@ -79,12 +79,10 @@ sign-up, or general users beyond this group.
 3. **Responsive by default.** The web UI should work comfortably on phones,
    tablets, and desktop screens, because most viewing will happen casually
    on personal devices.
-4. **Manual data entry, on purpose.** Gameweek results reach the repo by
-   hand (by one person) once a Gameweek is finalised on the official FPL
-   site. An offline import script may pull a fresh snapshot from FPL's
-   public API to prepare that JSON, but nothing commits or deploys
-   automatically — a person always reviews and commits the update. The
-   running app itself makes no live API calls and does no scraping.
-5. **Source of truth lives in the repo.** Weekly scores/results are stored
-   as a JSON file committed to the git repository. Updating the JSON and
-   pushing/merging is how the season's data is updated.
+4. **Automated, validated data.** Gameweek results reach the site through a
+   build-time import from FPL's public API that runs on every deployment and
+   fails the deploy rather than publishing incomplete data. The running app
+   makes no live API calls and does no scraping.
+5. **FPL is the source of truth.** Scores come from FPL at build time; the
+   app derives everything else. The committed JSON snapshot is a baseline for
+   development, tests, and emergency deploys.

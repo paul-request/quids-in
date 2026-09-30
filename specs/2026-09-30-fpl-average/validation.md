@@ -11,8 +11,8 @@
      import does not fail; and
    - `bootstrap-static` is still fetched only once per import.
 3. Stats tests show that:
-   - `fplAverage` and `varianceFromFplAverage` are correct for positive,
-     negative and zero variance;
+   - `fplAverage` and `differenceFromFplAverage` are correct for positive,
+     negative and zero difference;
    - both are `undefined` when the Gameweek has no `fplAverage`; and
    - the existing statistics are unchanged.
 4. Card tests show that the new rows render with correct formatting when
@@ -30,7 +30,7 @@
 ## Manual checks
 
 1. Run `npm run dev` and select each Gameweek. Check that `FPL average` and
-   `Variance from FPL average` appear directly after `League average`, with
+   `Difference from FPL average` appear directly after `League average`, with
    values that match the snapshot and a correct sign.
 2. Select the current live Gameweek, if there is one. Check that the two
    rows are hidden and the rest of the card is unchanged.

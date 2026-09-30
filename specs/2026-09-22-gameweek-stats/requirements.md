@@ -1,5 +1,9 @@
 # Requirements — Gameweek stats (Phase 7)
 
+> **Note:** the `Variance from season average` row was later renamed
+> `Difference from season average`, because the value is a signed difference
+> rather than a statistical variance.
+
 ## Source
 
 This feature implements Phase 7 of the quids-in roadmap:

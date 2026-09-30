@@ -1,6 +1,6 @@
 # quids-in
 
-quids-in is a small Svelte/Vite scoreboard for a private group of 12 friends
+quids-in is a small Svelte/Vite scoreboard for a private group of 14 friends
 who play Fantasy Premier League together. Its dashboard shows the selected
 Gameweek at full width, with overall standings and `The slugs` underneath on
 desktop. `The slugs` ranks participants by last-place Gameweek finishes and
@@ -50,9 +50,11 @@ library-first convention documented in
   colocated unit tests.
 - `src/main.ts` is only the Vite bootstrap entrypoint.
 
-Season data is stored in `data/`, with one JSON file per season. The data is
-imported locally and committed after review; the application does not fetch
-live FPL data.
+Season data is stored in `data/`, with one JSON file per season. The browser
+never calls FPL and there is no backend: every deployment imports fresh FPL
+data at build time and bundles it into the static site. The checked-in
+snapshot is a development and test baseline (and an emergency fallback), not
+what the live site normally serves.
 
 ## Import season data
 
@@ -83,17 +85,24 @@ keeps its last successful deployment rather than falling back to the
 checked-in snapshot. Deployments share one `pages` concurrency group and are
 never cancelled mid-run.
 
+**Emergency option:** if FPL is down and a code fix must ship, start the
+workflow manually with **Use committed snapshot** ticked. It skips the import,
+deploys the checked-in snapshot, and adds a warning to the run. The site then
+shows that snapshot's older "Data last refreshed" time until the next
+successful import.
+
 ## Weekly data update workflow
 
-Use this workflow when a new Gameweek has finished:
+No manual step is needed for the live site: the daily deployment picks up
+each finished Gameweek. After a Gameweek ends, check the live site against the
+official FPL results.
+
+Refreshing the checked-in snapshot is optional and only keeps local
+development and tests close to reality:
 
 1. Run `npm run import:season-data` from the repository root.
-2. Review `data/season-2026-27.json` and confirm the participant list and
-   appended Gameweek scores match the official FPL results.
-3. Run `npm run validate`.
-4. Inspect the dashboard locally with `npm run dev`, including the selected
-   Gameweek, standings, summary cards, and player stats.
-5. Commit the reviewed season snapshot and any intentional source changes.
+2. Run `npm run validate` and inspect the dashboard with `npm run dev`.
+3. Commit the refreshed snapshot if you want it as the new baseline.
 
 Season snapshots are stored in `data/`, with one JSON file per season. Each
 snapshot has this shape:
@@ -140,8 +149,8 @@ these optional fields:
 - `goalsScored` and `goalsConceded` on scores in Quids In Cup Gameweeks
   (16–19), used for tie-breaks;
 - top-level `fplCup`: the official FPL League Cup matches, present once FPL
-  creates the cup. If the FPL cup request fails, the importer logs a warning
-  and omits `fplCup` instead of failing the run.
+  creates the cup. If FPL has created the cup but its matches cannot be
+  fetched, the import fails rather than deploying without the cup.
 
 The Quids In Cup draw lives in `data/cup-draw-2026-27.json`. It is generated
 once with `npm run generate:cup-draw` and committed, and must never be

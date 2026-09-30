@@ -332,10 +332,10 @@ export function calculateGameweekStats(
     leagueAverage,
     lowestScore,
     spread: highestScore - lowestScore,
-    varianceFromSeasonAverage: leagueAverage - seasonAverage,
+    differenceFromSeasonAverage: leagueAverage - seasonAverage,
     ...(fplAverage === undefined
       ? {}
-      : { fplAverage, varianceFromFplAverage: leagueAverage - fplAverage }),
+      : { fplAverage, differenceFromFplAverage: leagueAverage - fplAverage }),
   };
 }
 
@@ -535,6 +535,15 @@ function validateGameweek(
 
   if (!Number.isInteger(gameweek.gameweek) || gameweek.gameweek < 1) {
     throw new Error(`Invalid Gameweek number: ${gameweek.gameweek}`);
+  }
+
+  if (
+    gameweek.fplAverage !== undefined &&
+    (typeof gameweek.fplAverage !== 'number' ||
+      !Number.isFinite(gameweek.fplAverage) ||
+      gameweek.fplAverage < 0)
+  ) {
+    throw new Error(`Invalid FPL average for Gameweek ${gameweek.gameweek}`);
   }
 
   const scoreEntries = Object.entries(gameweek.scores);

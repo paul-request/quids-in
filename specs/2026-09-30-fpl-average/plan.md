@@ -4,7 +4,7 @@
 
 1. In `libs/quids-in/utility/results.interfaces.ts`:
    - add `fplAverage?: number` to `Gameweek`; and
-   - add `fplAverage?: number` and `varianceFromFplAverage?: number` to
+   - add `fplAverage?: number` and `differenceFromFplAverage?: number` to
      `AvailableGameweekStats`.
 2. Confirm that `data/season-2026-27.json` still type-checks when it is
    imported without the new field.
@@ -30,7 +30,7 @@
 
 1. In `calculateGameweekStats` in `libs/quids-in/utility/results.ts`, read
    `selectedGameweekInSeason.fplAverage`. When it is defined, return
-   `fplAverage` and `varianceFromFplAverage = leagueAverage - fplAverage`.
+   `fplAverage` and `differenceFromFplAverage = leagueAverage - fplAverage`.
 2. Extend `results.test.ts`:
    - with an FPL average, check both values, including negative variance;
    - without an FPL average, check both are `undefined` and the existing
@@ -40,7 +40,7 @@
 ## 4. Update the card
 
 1. In `GameweekStatsCard.svelte`, add the `FPL average` and
-   `Variance from FPL average` rows after `League average`. Wrap them in
+   `Difference from FPL average` rows after `League average`. Wrap them in
    `{#if stats.fplAverage !== undefined}`.
 2. Reuse the existing `<dl>` row markup and styling, with no CSS changes
    unless the layout needs them at mobile widths.

@@ -55,7 +55,7 @@ Out of scope:
 
 6. `AvailableGameweekStats` gains two optional fields:
    - `fplAverage`, the selected Gameweek's `fplAverage`; and
-   - `varianceFromFplAverage`, calculated as `leagueAverage - fplAverage`.
+   - `differenceFromFplAverage`, calculated as `leagueAverage - fplAverage`.
 7. Both fields are `undefined` when the selected Gameweek has no
    `fplAverage`. The existing statistics are unchanged.
 
@@ -63,8 +63,8 @@ Out of scope:
 
 8. The card shows two new rows, directly after `League average`:
    - `FPL average`, formatted with `formatNumber`; and
-   - `Variance from FPL average`, formatted with `formatSignedNumber`, the
-     same as the existing variance row.
+   - `Difference from FPL average`, formatted with `formatSignedNumber`, the
+     same as the existing difference row.
 9. When `fplAverage` is unavailable, both rows are hidden rather than showing
    a zero or placeholder. Every other row renders as it does now.
 10. The rows use the existing `<dl>` markup and styles, stay readable at
@@ -74,7 +74,7 @@ Out of scope:
 ## Decisions
 
 - **Label:** `FPL average`, matching the existing `League average` wording.
-- **Comparison:** show the signed variance so the league's performance
+- **Comparison:** show the signed difference so the league's performance
   against everyone else is clear at a glance.
 - **Points basis:** FPL does not document whether `average_entry_score`
   deducts transfer costs, while league scores are net of hits. The
@@ -83,5 +83,5 @@ Out of scope:
 - **Unavailable state:** hide the rows instead of showing `-` or `0`, so live
   Gameweeks and older snapshots don't look wrong.
 - **Storage:** store the raw FPL value in the snapshot, because it is source
-  data rather than a value derived from league scores. Compute the variance
+  data rather than a value derived from league scores. Compute the difference
   at runtime, as the other statistics are.

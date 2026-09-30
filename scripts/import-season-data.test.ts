@@ -587,8 +587,7 @@ describe('importSeasonData', () => {
       });
     });
 
-    it('warns and omits the FPL League Cup when its matches cannot be imported', async () => {
-      const logWarning = vi.fn();
+    it('fails the import when the FPL League Cup exists but cannot be imported', async () => {
       const fetchFn = vi.fn(
         withGameweekStatus(async (url: string) => {
           if (url.includes('standings')) {
@@ -603,11 +602,8 @@ describe('importSeasonData', () => {
         }),
       );
 
-      const season = await importSeasonData({ fetchFn, logWarning });
-
-      expect(season).not.toHaveProperty('fplCup');
-      expect(logWarning).toHaveBeenCalledWith(
-        expect.stringContaining('Skipping FPL League Cup import'),
+      await expect(importSeasonData({ fetchFn })).rejects.toThrow(
+        'FPL request failed for FPL League Cup matches page 1: HTTP 404',
       );
     });
 

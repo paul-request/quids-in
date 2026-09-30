@@ -29,7 +29,7 @@ no server we have to maintain, pay for, or keep alive.
 - **Language:** TypeScript for type safety around the data shapes (people,
   gameweeks, results).
 - **Styling:** Plain CSS (or a single small CSS file). No CSS framework
-  needed for 12 friends and a handful of views. Layouts should follow
+  needed for 14 friends and a handful of views. Layouts should follow
   responsive design from the start, with mobile-friendly spacing,
   fluid sizing, and simple breakpoints where a view needs them.
 - **State/data:** No state management library needed. The season data is a
@@ -50,24 +50,26 @@ no server we have to maintain, pay for, or keep alive.
 - **No database. No backend.**
 - Each season's data lives in its own **JSON file committed to the repo**
   (e.g. `data/season-2025-26.json`), containing:
-  - The list of 12 participants (name, FPL team name).
+  - The list of 14 participants (name, FPL team name).
   - Per-Gameweek raw results (each person's score). Winners, shares, and
     leaderboard totals are derived at runtime and are not stored in JSON.
   - Average-position, season-balance, Gameweek-stat, and player-stat values
     are derived at runtime and are not stored in JSON.
-- Updating a Gameweek's results = editing the JSON file and committing it
-  (directly or via a small PR). This is a manual, deliberate step taken
-  once a Gameweek is finalised on the official FPL site.
+- The live site does not use the committed file directly: every deployment
+  imports fresh data at build time (see Phase 13). The committed file is a
+  development and test baseline and an emergency fallback.
 - **Phase 4 import tooling:** A shared local command will fetch the public
   FPL league data for league `869128` and produce a static snapshot. It will
   retain Gameweek points, transfer deduction, and chip-use fields for review.
   The importer subtracts the authoritative transfer cost from recorded points
   to calculate the scoreboard score. The browser does not recalculate
   deductions.
-- **Scheduled import artifact:** GitHub Actions will run the same command
-  every Tuesday and on manual dispatch, uploading a timestamped JSON artifact
-  only. It does not commit generated data to `main` and does not deploy the
-  app. Deployment integration is deferred to Phase 10.
+- **Deployment import (Phase 13):** `deploy-pages.yml` runs the same command
+  on every merge to `main`, daily at midnight UTC, and on manual dispatch,
+  retrying the whole import up to 3 times. It builds and deploys with the
+  fresh snapshot and uploads it as an artifact, never commits to `main`, and
+  fails the deploy if the import keeps failing. A manual-dispatch input can
+  deploy the committed snapshot instead in an emergency.
 - **Phase 12 knockout cups:**
   - The Quids In Cup draw is a separate committed file,
     `data/cup-draw-2026-27.json`. It is generated once by a local script
@@ -78,7 +80,7 @@ no server we have to maintain, pay for, or keep alive.
     `goalsConceded` for Quids In Cup Gameweeks (from the `picks` and
     `event/{gw}/live` endpoints), and the official FPL League Cup matches
     (from the league's `cup_league` and the `leagues-h2h-matches`
-    endpoint; fail-soft, so a failure only logs a warning).
+    endpoint; if the cup exists but cannot be fetched, the import fails).
   - Cup brackets, winners, tie-breaks, and cup money are derived at runtime
     and are not stored.
   - Before the reveal Gameweek, pairings are obfuscated with a CSS `filter`
@@ -89,15 +91,12 @@ no server we have to maintain, pay for, or keep alive.
 
 ## Hosting / deployment
 
-- **For now: local only.** While the app is being built and refined, it
-  just runs locally via `npm run dev` (Vite dev server). No hosting or
-  deployment setup yet — see [roadmap.md](./roadmap.md) for when this is
-  picked up.
-- **Planned for later:** [GitHub Pages](https://pages.github.com), served
-  from the `quids-in` GitHub repo as a **project site**, deployed at the
-  default `https://<username>.github.io/quids-in/` URL, via a GitHub
-  Actions workflow building the Vite app and deploying the static output
-  on push to `main`.
+- **Live:** [GitHub Pages](https://pages.github.com), served from the
+  `paul-request/quids-in` repo as a **project site** at the default
+  `https://<username>.github.io/quids-in/` URL. The `deploy-pages.yml`
+  GitHub Actions workflow imports fresh FPL data, builds the Vite app, and
+  deploys the static output on every push to `main`, daily, and on manual
+  dispatch. Local development still uses `npm run dev`.
 - **Note on the existing personal GitHub Pages site:** a separate repo
   already serves a personal user site (with a custom domain pointed at
   `https://<username>.github.io`). GitHub Pages is configured per
@@ -140,8 +139,8 @@ no server we have to maintain, pay for, or keep alive.
 
 ## Explicitly out of scope (tech-wise)
 
-- No FPL API integration (even though it's free/public, we've chosen
-  browser-side live FPL integration. Phase 4's local and GitHub Actions
+- No runtime/browser-side FPL API integration. FPL is only called at build
+  time. Phase 4's local and GitHub Actions
   importer is a build-time/static-data tool, not a runtime app dependency.
 - No authentication/login system.
 - No database (SQL or NoSQL), no serverless functions, no third-party

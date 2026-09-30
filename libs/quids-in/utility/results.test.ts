@@ -76,12 +76,12 @@ describe('calculateGameweekResult', () => {
         leagueAverage: 50,
         lowestScore: 10,
         spread: 80,
-        varianceFromSeasonAverage: 5,
+        differenceFromSeasonAverage: 5,
       });
 
     });
 
-    it('excludes missing scores and preserves decimal variance', () => {
+    it('excludes missing scores and preserves decimal difference', () => {
       const firstGameweek = gameweek({ '1': 10, '2': 20 });
       const secondGameweek: Gameweek = {
         gameweek: 2,
@@ -96,7 +96,7 @@ describe('calculateGameweekResult', () => {
         leagueAverage: 25.5,
         lowestScore: 20,
         spread: 11,
-        varianceFromSeasonAverage: 5.25,
+        differenceFromSeasonAverage: 5.25,
       });
     });
 
@@ -105,7 +105,7 @@ describe('calculateGameweekResult', () => {
 
       const result = calculateGameweekStats(participants, [selected], selected);
 
-      expect(result).toMatchObject({ fplAverage: 53.5, leagueAverage: 50, varianceFromFplAverage: -3.5 });
+      expect(result).toMatchObject({ fplAverage: 53.5, leagueAverage: 50, differenceFromFplAverage: -3.5 });
     });
 
     it('treats an FPL average of zero as recorded', () => {
@@ -113,8 +113,19 @@ describe('calculateGameweekResult', () => {
 
       const result = calculateGameweekStats(participants, [selected], selected);
 
-      expect(result).toMatchObject({ fplAverage: 0, varianceFromFplAverage: 15 });
+      expect(result).toMatchObject({ fplAverage: 0, differenceFromFplAverage: 15 });
     });
+
+    it.each([['-1', -1], ['NaN', Number.NaN], ['a string', '50']])(
+      'rejects an FPL average of %s from the season data',
+      (_description, fplAverage) => {
+        const selected = { ...gameweek({ '1': 10, '2': 20 }), fplAverage } as Gameweek;
+
+        expect(() => calculateGameweekStats(participants, [selected], selected)).toThrow(
+          'Invalid FPL average for Gameweek 1'
+        );
+      }
+    );
 
     it('omits the FPL comparison when no FPL average is recorded', () => {
       const selected = gameweek({ '1': 10, '2': 20 });
@@ -122,7 +133,7 @@ describe('calculateGameweekResult', () => {
       const result = calculateGameweekStats(participants, [selected], selected);
 
       expect(result).not.toHaveProperty('fplAverage');
-      expect(result).not.toHaveProperty('varianceFromFplAverage');
+      expect(result).not.toHaveProperty('differenceFromFplAverage');
     });
 
     it('returns an unavailable result when the selected Gameweek has no usable scores', () => {
@@ -162,7 +173,7 @@ describe('calculateGameweekResult', () => {
         leagueAverage: 15,
         lowestScore: 10,
         spread: 10,
-        varianceFromSeasonAverage: 0,
+        differenceFromSeasonAverage: 0,
       });
     });
   });

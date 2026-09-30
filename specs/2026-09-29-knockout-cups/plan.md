@@ -70,6 +70,9 @@ walkover`, winner, and tie-break reason), and a cup-winner result.
      endpoint and field names cannot be verified until FPL creates the cup,
      so the import is fail-soft: any error logs "Skipping FPL League Cup
      import" and omits `fplCup` rather than blocking the daily deploy.
+   - _Superseded:_ after the deep review, a failed cup fetch now fails the
+     import (and so the deploy) instead, because every deployment replaces
+     the live data and a soft failure would silently drop the cup.
    - The FPL League Cup's reveal Gameweek is derived as its first Gameweek
      minus one.
 4. Extend `validateSeasonData` for the new fields, and keep the existing

@@ -26,14 +26,14 @@
         <dt>League average</dt>
         <dd>{formatNumber(stats.leagueAverage)}</dd>
       </div>
-      {#if stats.fplAverage !== undefined && stats.varianceFromFplAverage !== undefined}
+      {#if stats.fplAverage !== undefined && stats.differenceFromFplAverage !== undefined}
         <div>
           <dt>FPL average</dt>
           <dd>{formatNumber(stats.fplAverage)}</dd>
         </div>
         <div>
-          <dt>Variance from FPL average</dt>
-          <dd>{formatSignedNumber(stats.varianceFromFplAverage)}</dd>
+          <dt>Difference from FPL average</dt>
+          <dd>{formatSignedNumber(stats.differenceFromFplAverage)}</dd>
         </div>
       {/if}
       <div>
@@ -41,8 +41,8 @@
         <dd>{formatNumber(stats.spread)}</dd>
       </div>
       <div>
-        <dt>Variance from season average</dt>
-        <dd>{formatSignedNumber(stats.varianceFromSeasonAverage)}</dd>
+        <dt>Difference from season average</dt>
+        <dd>{formatSignedNumber(stats.differenceFromSeasonAverage)}</dd>
       </div>
     </dl>
   {:else}

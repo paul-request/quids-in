@@ -11,7 +11,6 @@ const FETCH_TIMEOUT_MS = 15000;
 export async function importSeasonData({
   fetchFn = globalThis.fetch,
   leagueId = DEFAULT_LEAGUE_ID,
-  logWarning = console.warn,
   retrievedAt = new Date().toISOString(),
   season = DEFAULT_SEASON,
   tieBreakGameweeks = [],
@@ -52,7 +51,7 @@ export async function importSeasonData({
   const fplCup =
     cupLeagueId === null
       ? undefined
-      : await fetchFplCup(fetchFn, cupLeagueId, participants, logWarning);
+      : await fetchFplCup(fetchFn, cupLeagueId, participants);
 
   return {
     ...(fplCup ? { fplCup } : {}),
@@ -140,12 +139,20 @@ async function addTieBreakStats(fetchFn, gameweek, participants) {
     live.elements.map((element) => [element.id, element.stats ?? {}]),
   );
 
-  for (const participant of participants) {
-    const picks = await fetchJson(
-      fetchFn,
-      `/entry/${participant.id}/event/${gameweek.gameweek}/picks/`,
-      `picks for entry ${participant.id} in Gameweek ${gameweek.gameweek}`,
-    );
+  // Fetched in parallel (like histories) so a slow FPL API cannot push a
+  // single import past the workflow timeout.
+  const picksByParticipant = await Promise.all(
+    participants.map((participant) =>
+      fetchJson(
+        fetchFn,
+        `/entry/${participant.id}/event/${gameweek.gameweek}/picks/`,
+        `picks for entry ${participant.id} in Gameweek ${gameweek.gameweek}`,
+      ),
+    ),
+  );
+
+  for (const [index, participant] of participants.entries()) {
+    const picks = picksByParticipant[index];
     const countedElements = getCountedElements(
       picks,
       participant.id,
@@ -200,55 +207,45 @@ function getCountedElements(picks, participantId, gameweekNumber) {
 }
 
 /**
- * Imports the official FPL League Cup once FPL has created it. A failure is
- * reported as a warning rather than failing the whole import, so the
- * scoreboard can still deploy if FPL's cup endpoint is unavailable.
+ * Imports the official FPL League Cup once FPL has created it. Any failure
+ * fails the whole import, so a deployment never replaces cup data with none;
+ * the workflow retries and otherwise keeps the last good deployment.
  */
-async function fetchFplCup(fetchFn, cupLeagueId, participants, logWarning) {
-  try {
-    const participantIds = new Set(participants.map(({ id }) => id));
-    const matchesById = new Map();
-    let page = 1;
-    let hasNextPage = true;
+async function fetchFplCup(fetchFn, cupLeagueId, participants) {
+  const participantIds = new Set(participants.map(({ id }) => id));
+  const matchesById = new Map();
+  let page = 1;
+  let hasNextPage = true;
 
-    while (hasNextPage) {
-      const response = await fetchJson(
-        fetchFn,
-        `/leagues-h2h-matches/league/${cupLeagueId}/?page=${page}`,
-        `FPL League Cup matches page ${page}`,
-      );
+  while (hasNextPage) {
+    const response = await fetchJson(
+      fetchFn,
+      `/leagues-h2h-matches/league/${cupLeagueId}/?page=${page}`,
+      `FPL League Cup matches page ${page}`,
+    );
 
-      if (
-        !response ||
-        !Array.isArray(response.results) ||
-        typeof response.has_next !== 'boolean'
-      ) {
-        throw new Error(
-          `Malformed FPL League Cup matches payload for page ${page}`,
-        );
-      }
-
-      for (const result of response.results) {
-        const match = createFplCupMatch(result, participantIds);
-
-        matchesById.set(match.id, match);
-      }
-
-      hasNextPage = response.has_next;
-      page += 1;
+    if (
+      !response ||
+      !Array.isArray(response.results) ||
+      typeof response.has_next !== 'boolean'
+    ) {
+      throw new Error(`Malformed FPL League Cup matches payload for page ${page}`);
     }
 
-    return {
-      cupLeagueId,
-      matches: [...matchesById.values()].sort(
-        (left, right) => left.id - right.id,
-      ),
-    };
-  } catch (error) {
-    logWarning(`Skipping FPL League Cup import: ${getErrorMessage(error)}`);
+    for (const result of response.results) {
+      const match = createFplCupMatch(result, participantIds);
 
-    return undefined;
+      matchesById.set(match.id, match);
+    }
+
+    hasNextPage = response.has_next;
+    page += 1;
   }
+
+  return {
+    cupLeagueId,
+    matches: [...matchesById.values()].sort((left, right) => left.id - right.id),
+  };
 }
 
 function createFplCupMatch(result, participantIds) {
