@@ -10,7 +10,7 @@ export function formatNumber(value: number): string {
 
 /**
  * Formats a number the same way as {@link formatNumber}, but prefixes
- * positive values with an explicit `+` sign (used for variance-style
+ * positive values with an explicit `+` sign (used for difference-style
  * figures where the sign itself is meaningful).
  */
 export function formatSignedNumber(value: number): string {

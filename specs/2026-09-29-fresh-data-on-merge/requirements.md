@@ -1,5 +1,10 @@
 # Requirements: Fresh data on merge deployments
 
+> **Follow-up (deep review):** automatic deployments still never fall back to
+> the committed snapshot. A manual-dispatch `use_committed_snapshot` input
+> was added as a deliberate, warned emergency override, and the job timeout
+> was raised to 40 minutes to fit three worst-case import attempts.
+
 ## Problem
 
 Merging a pull request to `main` replaces the live site's fresh FPL data

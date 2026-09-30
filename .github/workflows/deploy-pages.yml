@@ -8,6 +8,14 @@ on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
+    inputs:
+      use_committed_snapshot:
+        description: >-
+          Emergency only: skip the FPL import and deploy the committed
+          (possibly stale) season snapshot, e.g. to ship a fix during an FPL
+          outage.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,7 +29,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Worst case ~9 min per import attempt if every FPL request times out and
+    # retries; three attempts plus back-off fit within this limit.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -30,7 +40,14 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Import current FPL season data
+        if: ${{ !inputs.use_committed_snapshot }}
         run: scripts/retry.sh 3 60 npm run import:season-data
+      - name: Warn that the committed snapshot is being deployed
+        if: ${{ inputs.use_committed_snapshot }}
+        run: >-
+          echo "::warning::FPL import skipped. Deploying the committed season
+          snapshot; the site will show its older 'Data last refreshed' time
+          until the next successful import."
       - run: npm run build
       - uses: actions/upload-artifact@v7
         with:

@@ -1,5 +1,9 @@
 # Validation — Knockout cups (Phase 12)
 
+> **Status:** merged. The checks below still need confirming against real
+> cup Gameweeks (Quids In Cup GW16–19 and the FPL League Cup) as they play
+> out.
+
 Each delivery slice is ready to merge when every applicable check below
 passes.
 
@@ -22,7 +26,8 @@ passes.
       Boost) after automatic subs, with no captain multiplier.
 - [ ] Picks and live data are only fetched for cup Gameweeks.
 - [ ] `fplCup` is omitted while FPL's `cup_league` is `null`, and a failed
-      FPL cup request logs a warning rather than failing the import. Once created,
+      FPL cup request fails the import (changed from fail-soft after the
+      deep review, so a deploy never silently drops the cup). Once created,
       it contains every FPL cup match, including byes, de-duplicated.
 - [ ] New fields are validated, and existing retry, timeout, and atomic-write
       behaviour is unchanged.

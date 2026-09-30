@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import GameweekStatsCard from './GameweekStatsCard.svelte';
 
 describe('GameweekStatsCard', () => {
-  it('renders every labelled statistic with formatted signed variance', () => {
+  it('renders every labelled statistic with formatted signed difference', () => {
     render(GameweekStatsCard, {
       props: {
         stats: {
@@ -13,7 +13,7 @@ describe('GameweekStatsCard', () => {
           leagueAverage: 48.5,
           lowestScore: 33,
           spread: 37,
-          varianceFromSeasonAverage: 2.25,
+          differenceFromSeasonAverage: 2.25,
         },
       },
     });
@@ -23,12 +23,12 @@ describe('GameweekStatsCard', () => {
     expect(screen.getByText('Lowest score')).toBeTruthy();
     expect(screen.getByText('League average')).toBeTruthy();
     expect(screen.getByText('Spread')).toBeTruthy();
-    expect(screen.getByText('Variance from season average')).toBeTruthy();
+    expect(screen.getByText('Difference from season average')).toBeTruthy();
     expect(screen.getByText('48.5')).toBeTruthy();
     expect(screen.getByText('+2.25')).toBeTruthy();
   });
 
-  it('shows the FPL average and signed variance after the league average', () => {
+  it('shows the FPL average and signed difference after the league average', () => {
     render(GameweekStatsCard, {
       props: {
         stats: {
@@ -38,8 +38,8 @@ describe('GameweekStatsCard', () => {
           leagueAverage: 56.6,
           lowestScore: 33,
           spread: 37,
-          varianceFromFplAverage: -3.2,
-          varianceFromSeasonAverage: 1,
+          differenceFromFplAverage: -3.2,
+          differenceFromSeasonAverage: 1,
         },
       },
     });
@@ -49,7 +49,7 @@ describe('GameweekStatsCard', () => {
     expect(terms.slice(2, 5)).toEqual([
       'League average',
       'FPL average',
-      'Variance from FPL average',
+      'Difference from FPL average',
     ]);
     expect(screen.getByText('59.8')).toBeTruthy();
     expect(screen.getByText('-3.2')).toBeTruthy();
@@ -64,13 +64,13 @@ describe('GameweekStatsCard', () => {
           leagueAverage: 48.5,
           lowestScore: 33,
           spread: 37,
-          varianceFromSeasonAverage: 2.25,
+          differenceFromSeasonAverage: 2.25,
         },
       },
     });
 
     expect(screen.queryByText('FPL average')).toBeNull();
-    expect(screen.queryByText('Variance from FPL average')).toBeNull();
+    expect(screen.queryByText('Difference from FPL average')).toBeNull();
     expect(document.querySelectorAll('dt')).toHaveLength(5);
   });
 
