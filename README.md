@@ -122,6 +122,13 @@ contains:
 `squadValue` and `bank` are omitted when the FPL history response does not
 include them; missing values must not be treated as zero.
 
+Each Gameweek may also include `fplAverage`, FPL's overall average score
+across every team (`average_entry_score` from `bootstrap-static`). It is
+recorded only once the Gameweek has ended, and the `Gameweek stats` card
+shows it with the league's signed variance from it. FPL does not document
+whether this average deducts transfer costs, so the comparison is
+approximate.
+
 ### Knockout cups (Phase 12)
 
 See [specs/2026-09-29-knockout-cups](./specs/2026-09-29-knockout-cups/requirements.md).

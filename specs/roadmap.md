@@ -38,6 +38,9 @@ deliberately deferred until the app is built and refined — see Phase 10.
   [2026-09-29-fresh-data-on-merge](./2026-09-29-fresh-data-on-merge/requirements.md)).
   The daily import workflow is folded into `deploy-pages.yml`, so every
   deployment imports fresh FPL data.
+- Phase 14 (FPL average in Gameweek stats) is implemented on branch
+  `feature/fpl-average` (see
+  [2026-09-30-fpl-average](./2026-09-30-fpl-average/requirements.md)).
 
 ## Phase 0 — Project scaffolding
 
@@ -437,6 +440,21 @@ Full detail:
 - **Done when:** a merge deployment shows a current "Data last refreshed"
   timestamp, the validation checklist is ticked, and `npm run validate`
   passes.
+
+## Phase 14 — FPL average in Gameweek stats
+
+Full detail:
+[requirements](./2026-09-30-fpl-average/requirements.md),
+[plan](./2026-09-30-fpl-average/plan.md),
+[validation](./2026-09-30-fpl-average/validation.md).
+
+- The importer records FPL's overall `average_entry_score` for each ended
+  Gameweek as `fplAverage`, using the existing `bootstrap-static` request.
+- The `Gameweek stats` card shows `FPL average` and
+  `Variance from FPL average` after `League average`. Both are hidden when
+  no FPL average is recorded.
+- **Done when:** the card shows the FPL average for ended Gameweeks, the
+  validation checklist is ticked, and `npm run validate` passes.
 
 ## Explicitly deferred / not planned
 

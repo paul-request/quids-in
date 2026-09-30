@@ -1,6 +1,8 @@
 {
   "gameweeks": [
     {
+      "ended": true,
+      "fplAverage": 50,
       "gameweek": 1,
       "scores": {
         "78294": {
@@ -106,6 +108,8 @@
       }
     },
     {
+      "ended": true,
+      "fplAverage": 81,
       "gameweek": 2,
       "scores": {
         "78294": {
@@ -210,6 +214,8 @@
       }
     },
     {
+      "ended": true,
+      "fplAverage": 51,
       "gameweek": 3,
       "scores": {
         "78294": {
@@ -315,6 +321,8 @@
       }
     },
     {
+      "ended": true,
+      "fplAverage": 69,
       "gameweek": 4,
       "scores": {
         "78294": {
@@ -422,6 +430,8 @@
       }
     },
     {
+      "ended": true,
+      "fplAverage": 48,
       "gameweek": 5,
       "scores": {
         "78294": {
@@ -602,6 +612,6 @@
   "season": "2026-27",
   "source": {
     "leagueId": 869128,
-    "retrievedAt": "2026-09-22T13:01:59.555Z"
+    "retrievedAt": "2026-09-30T09:46:44.783Z"
   }
 }

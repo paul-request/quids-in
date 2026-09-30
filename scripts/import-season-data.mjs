@@ -33,10 +33,15 @@ export async function importSeasonData({
     })),
   );
   const endedGameweeks = await fetchEndedGameweeks(fetchFn);
-  const gameweeks = createGameweeks(histories).map((gameweek) => ({
-    ended: endedGameweeks.has(gameweek.gameweek),
-    ...gameweek,
-  }));
+  const gameweeks = createGameweeks(histories).map((gameweek) => {
+    const fplAverage = endedGameweeks.get(gameweek.gameweek);
+
+    return {
+      ended: endedGameweeks.has(gameweek.gameweek),
+      ...(fplAverage === undefined ? {} : { fplAverage }),
+      ...gameweek,
+    };
+  });
 
   for (const gameweek of gameweeks) {
     if (tieBreakGameweeks.includes(gameweek.gameweek)) {
@@ -89,14 +94,28 @@ async function fetchEndedGameweeks(fetchFn) {
     throw new Error('Malformed Gameweek status payload');
   }
 
-  return new Set(
+  return new Map(
     bootstrap.events
       .filter(
         (event) =>
           event && event.finished === true && event.data_checked === true,
       )
-      .map((event) => event.id),
+      .map((event) => [event.id, readFplAverage(event)]),
   );
+}
+
+/**
+ * FPL's mean score across every team for a Gameweek. Returns undefined for a
+ * missing or malformed value so it never fails the import.
+ */
+function readFplAverage(event) {
+  const average = event.average_entry_score;
+
+  return typeof average === 'number' &&
+    Number.isFinite(average) &&
+    average >= 0
+    ? average
+    : undefined;
 }
 
 /**

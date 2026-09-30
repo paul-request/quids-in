@@ -8,9 +8,9 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 const bootstrapResponse = {
   events: [
-    { data_checked: true, finished: true, id: 1 },
-    { data_checked: false, finished: true, id: 2 },
-    { data_checked: false, finished: false, id: 3 },
+    { average_entry_score: 50, data_checked: true, finished: true, id: 1 },
+    { average_entry_score: 81, data_checked: false, finished: true, id: 2 },
+    { average_entry_score: 0, data_checked: false, finished: false, id: 3 },
   ],
 };
 
@@ -178,6 +178,7 @@ describe('importSeasonData', () => {
       gameweeks: [
         {
           ended: true,
+          fplAverage: 50,
           gameweek: 1,
           scores: {
             101: {
@@ -240,6 +241,61 @@ describe('importSeasonData', () => {
       source: { leagueId: 869128, retrievedAt: '2026-09-21T12:00:00.000Z' },
     });
   });
+
+  it.each([
+    ['missing', {}],
+    ['negative', { average_entry_score: -1 }],
+    ['non-numeric', { average_entry_score: '50' }],
+    ['null', { average_entry_score: null }],
+  ])(
+    'omits a %s FPL average without failing the import',
+    async (_description, averageField) => {
+      let bootstrapRequests = 0;
+      const fetchFn = vi.fn(async (url: string) => {
+        if (url.includes('/bootstrap-static/')) {
+          bootstrapRequests += 1;
+
+          return jsonResponse({
+            events: [
+              { data_checked: true, finished: true, id: 1, ...averageField },
+            ],
+          });
+        }
+
+        if (url.includes('standings')) {
+          return jsonResponse({
+            standings: {
+              has_next: false,
+              page: 1,
+              results: [
+                { entry: 101, entry_name: 'Team One', player_name: 'Alex' },
+              ],
+            },
+          });
+        }
+
+        return jsonResponse({
+          current: [
+            {
+              event: 1,
+              event_transfers: 0,
+              event_transfers_cost: 0,
+              points: 60,
+            },
+          ],
+        });
+      });
+
+      const season = await importSeasonData({
+        fetchFn,
+        retrievedAt: '2026-09-21T12:00:00.000Z',
+      });
+
+      expect(season.gameweeks[0].ended).toBe(true);
+      expect(season.gameweeks[0]).not.toHaveProperty('fplAverage');
+      expect(bootstrapRequests).toBe(1);
+    },
+  );
 
   it('rejects incomplete Gameweek histories rather than emitting partial data', async () => {
     const fetchFn = vi.fn(

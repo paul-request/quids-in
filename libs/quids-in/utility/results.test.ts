@@ -100,6 +100,31 @@ describe('calculateGameweekResult', () => {
       });
     });
 
+    it('compares the league average with the FPL average when it is recorded', () => {
+      const selected: Gameweek = { ...gameweek({ '1': 40, '2': 50, '3': 60 }), fplAverage: 53.5 };
+
+      const result = calculateGameweekStats(participants, [selected], selected);
+
+      expect(result).toMatchObject({ fplAverage: 53.5, leagueAverage: 50, varianceFromFplAverage: -3.5 });
+    });
+
+    it('treats an FPL average of zero as recorded', () => {
+      const selected: Gameweek = { ...gameweek({ '1': 10, '2': 20 }), fplAverage: 0 };
+
+      const result = calculateGameweekStats(participants, [selected], selected);
+
+      expect(result).toMatchObject({ fplAverage: 0, varianceFromFplAverage: 15 });
+    });
+
+    it('omits the FPL comparison when no FPL average is recorded', () => {
+      const selected = gameweek({ '1': 10, '2': 20 });
+
+      const result = calculateGameweekStats(participants, [selected], selected);
+
+      expect(result).not.toHaveProperty('fplAverage');
+      expect(result).not.toHaveProperty('varianceFromFplAverage');
+    });
+
     it('returns an unavailable result when the selected Gameweek has no usable scores', () => {
       const firstGameweek = gameweek({ '1': 10, '2': 20 });
       const secondGameweek: Gameweek = { gameweek: 2, scores: {} };

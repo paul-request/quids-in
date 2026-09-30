@@ -26,6 +26,16 @@
         <dt>League average</dt>
         <dd>{formatNumber(stats.leagueAverage)}</dd>
       </div>
+      {#if stats.fplAverage !== undefined && stats.varianceFromFplAverage !== undefined}
+        <div>
+          <dt>FPL average</dt>
+          <dd>{formatNumber(stats.fplAverage)}</dd>
+        </div>
+        <div>
+          <dt>Variance from FPL average</dt>
+          <dd>{formatSignedNumber(stats.varianceFromFplAverage)}</dd>
+        </div>
+      {/if}
       <div>
         <dt>Spread</dt>
         <dd>{formatNumber(stats.spread)}</dd>

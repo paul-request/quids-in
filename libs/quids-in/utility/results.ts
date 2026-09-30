@@ -324,6 +324,7 @@ export function calculateGameweekStats(
   const leagueAverage = calculateAverage(selectedScores);
   const seasonAverage =
     seasonGameweekAverages.length > 0 ? calculateAverage(seasonGameweekAverages) : leagueAverage;
+  const { fplAverage } = selectedGameweekInSeason;
 
   return {
     available: true,
@@ -332,6 +333,9 @@ export function calculateGameweekStats(
     lowestScore,
     spread: highestScore - lowestScore,
     varianceFromSeasonAverage: leagueAverage - seasonAverage,
+    ...(fplAverage === undefined
+      ? {}
+      : { fplAverage, varianceFromFplAverage: leagueAverage - fplAverage }),
   };
 }
 
