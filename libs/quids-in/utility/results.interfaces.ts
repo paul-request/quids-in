@@ -17,6 +17,7 @@ export interface GameweekScore {
 
 export interface Gameweek {
   ended?: boolean;
+  fplAverage?: number;
   gameweek: number;
   scores: Record<string, GameweekScore>;
 }
@@ -93,10 +94,12 @@ export interface SeasonBalanceRow {
 
 export interface AvailableGameweekStats {
   available: true;
+  fplAverage?: number;
   highestScore: number;
   leagueAverage: number;
   lowestScore: number;
   spread: number;
+  varianceFromFplAverage?: number;
   varianceFromSeasonAverage: number;
 }
 
