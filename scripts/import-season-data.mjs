@@ -31,13 +31,10 @@ export async function importSeasonData({
       participant,
     })),
   );
-  const endedGameweeks = await fetchEndedGameweeks(fetchFn);
+  const gameweekStatuses = await fetchGameweekStatuses(fetchFn, retrievedAt);
   const gameweeks = createGameweeks(histories).map((gameweek) => {
-    const fplAverage = endedGameweeks.get(gameweek.gameweek);
-
     return {
-      ended: endedGameweeks.has(gameweek.gameweek),
-      ...(fplAverage === undefined ? {} : { fplAverage }),
+      ...gameweekStatuses.get(gameweek.gameweek),
       ...gameweek,
     };
   });
@@ -82,7 +79,7 @@ export async function loadTieBreakGameweeks(drawPath) {
   });
 }
 
-async function fetchEndedGameweeks(fetchFn) {
+async function fetchGameweekStatuses(fetchFn, retrievedAt) {
   const bootstrap = await fetchJson(
     fetchFn,
     '/bootstrap-static/',
@@ -93,14 +90,51 @@ async function fetchEndedGameweeks(fetchFn) {
     throw new Error('Malformed Gameweek status payload');
   }
 
-  return new Map(
-    bootstrap.events
-      .filter(
-        (event) =>
-          event && event.finished === true && event.data_checked === true,
-      )
-      .map((event) => [event.id, readFplAverage(event)]),
-  );
+  const statuses = new Map();
+
+  for (const event of bootstrap.events) {
+    if (!event || typeof event !== 'object') {
+      throw new Error('Malformed Gameweek status event');
+    }
+
+    validatePositiveInteger(event.id, 'Gameweek status ID');
+
+    if (statuses.has(event.id)) {
+      throw new Error(`Duplicate Gameweek status ID: ${event.id}`);
+    }
+
+    for (const flag of ['finished', 'data_checked']) {
+      if (event[flag] !== undefined && typeof event[flag] !== 'boolean') {
+        throw new Error(`Gameweek ${event.id} ${flag} flag must be a boolean`);
+      }
+    }
+
+    const status = {};
+
+    if (event.finished !== undefined && event.data_checked !== undefined) {
+      status.ended = event.finished && event.data_checked;
+    }
+
+    if (event.deadline_time !== undefined) {
+      if (
+        typeof event.deadline_time !== 'string' ||
+        !Number.isFinite(Date.parse(event.deadline_time))
+      ) {
+        throw new Error(`Gameweek ${event.id} deadline must be a valid date`);
+      }
+
+      status.started = Date.parse(retrievedAt) >= Date.parse(event.deadline_time);
+    }
+
+    const fplAverage = status.ended === true ? readFplAverage(event) : undefined;
+
+    statuses.set(event.id, {
+      ...status,
+      ...(fplAverage === undefined ? {} : { fplAverage }),
+    });
+  }
+
+  return statuses;
 }
 
 /**
@@ -595,7 +629,7 @@ function validateFplCupMatch(match, participantIds) {
   }
 }
 
-function validateSeasonData(seasonData) {
+export function validateSeasonData(seasonData) {
   if (!seasonData || typeof seasonData !== 'object') {
     throw new Error('Season data must be an object');
   }
@@ -657,10 +691,12 @@ function validateSeasonData(seasonData) {
 
     previousGameweek = gameweek.gameweek;
 
-    if (gameweek.ended !== undefined && typeof gameweek.ended !== 'boolean') {
-      throw new Error(
-        `Gameweek ${gameweek.gameweek} ended flag must be a boolean`,
-      );
+    for (const flag of ['ended', 'started']) {
+      if (gameweek[flag] !== undefined && typeof gameweek[flag] !== 'boolean') {
+        throw new Error(
+          `Gameweek ${gameweek.gameweek} ${flag} flag must be a boolean`,
+        );
+      }
     }
 
     if (!gameweek.scores || typeof gameweek.scores !== 'object') {

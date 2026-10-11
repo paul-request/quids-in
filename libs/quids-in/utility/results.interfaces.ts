@@ -20,6 +20,7 @@ export interface Gameweek {
   fplAverage?: number;
   gameweek: number;
   scores: Record<string, GameweekScore>;
+  started?: boolean;
 }
 
 export interface Season {

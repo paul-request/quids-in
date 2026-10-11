@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { importSeasonData } from './import-season-data.mjs';
+import { importSeasonData, validateSeasonData } from './import-season-data.mjs';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status });
@@ -220,7 +220,6 @@ describe('importSeasonData', () => {
           },
         },
         {
-          ended: false,
           gameweek: 4,
           scores: {
             101: {
@@ -239,6 +238,120 @@ describe('importSeasonData', () => {
       ],
       season: '2026-27',
       source: { leagueId: 869128, retrievedAt: '2026-09-21T12:00:00.000Z' },
+    });
+  });
+
+  describe('Gameweek status import', () => {
+    const retrievedAt = '2026-10-11T12:00:00.000Z';
+
+    function fetchStatus(events: Array<unknown>) {
+      return vi.fn(async (url: string) => {
+        if (url.includes('/bootstrap-static/')) {
+          return jsonResponse({ events });
+        }
+
+        if (url.includes('standings')) {
+          return jsonResponse({
+            standings: {
+              has_next: false,
+              page: 1,
+              results: [{ entry: 101, entry_name: 'Team One', player_name: 'Alex' }],
+            },
+          });
+        }
+
+        return jsonResponse({
+          current: [{ event: 1, event_transfers: 0, event_transfers_cost: 0, points: 60 }],
+        });
+      });
+    }
+
+    it.each([
+      ['before deadline', '2026-10-11T12:00:01.000Z', false, false, false, false],
+      ['exact deadline', retrievedAt, false, false, true, false],
+      ['live', '2026-10-10T12:00:00.000Z', false, false, true, false],
+      ['finished but unchecked', '2026-10-10T12:00:00.000Z', true, false, true, false],
+      ['finished and checked', '2026-10-10T12:00:00.000Z', true, true, true, true],
+    ])(
+      'imports %s status at the retrieval timestamp',
+      async (_label, deadline_time, finished, data_checked, started, ended) => {
+        const fetchFn = fetchStatus([
+          { average_entry_score: 50, data_checked, deadline_time, finished, id: 1 },
+        ]);
+        const season = await importSeasonData({ fetchFn, retrievedAt });
+
+        expect(season.gameweeks[0]).toMatchObject({ ended, started });
+        expect(season.gameweeks[0].fplAverage).toBe(ended ? 50 : undefined);
+        expect(
+          fetchFn.mock.calls.filter(([url]) => url.includes('/bootstrap-static/'))
+        ).toHaveLength(1);
+        expect(() => validateSeasonData(season)).not.toThrow();
+      }
+    );
+
+    it.each([
+      ['missing event', []],
+      ['missing flags', [{ id: 1 }]],
+      ['missing checked flag', [{ finished: false, id: 1 }]],
+      ['missing finished flag', [{ data_checked: true, id: 1 }]],
+    ])('preserves unknown completion for %s', async (_label, events) => {
+      const season = await importSeasonData({ fetchFn: fetchStatus(events), retrievedAt });
+
+      expect(season.gameweeks[0]).not.toHaveProperty('ended');
+      expect(season.gameweeks[0]).not.toHaveProperty('started');
+      expect(() => validateSeasonData(season)).not.toThrow();
+    });
+
+    it('retains known start status when completion is unknown', async () => {
+      const season = await importSeasonData({
+        fetchFn: fetchStatus([{ deadline_time: retrievedAt, id: 1 }]),
+        retrievedAt,
+      });
+
+      expect(season.gameweeks[0].started).toBe(true);
+      expect(season.gameweeks[0]).not.toHaveProperty('ended');
+    });
+
+    it.each([
+      ['finished flag', { finished: 'false', id: 1 }, 'finished flag must be a boolean'],
+      ['checked flag', { data_checked: null, id: 1 }, 'data_checked flag must be a boolean'],
+      ['invalid date', { deadline_time: 'invalid', id: 1 }, 'deadline must be a valid date'],
+      ['non-string date', { deadline_time: 123, id: 1 }, 'deadline must be a valid date'],
+      ['null deadline', { deadline_time: null, id: 1 }, 'deadline must be a valid date'],
+      ['invalid event', null, 'Malformed Gameweek status event'],
+      ['invalid ID', { id: 0 }, 'Gameweek status ID must be a positive integer'],
+    ])('rejects malformed %s explicitly', async (_label, event, error) => {
+      await expect(
+        importSeasonData({ fetchFn: fetchStatus([event]), retrievedAt })
+      ).rejects.toThrow(error);
+    });
+
+    it('rejects duplicate status events', async () => {
+      await expect(
+        importSeasonData({ fetchFn: fetchStatus([{ id: 1 }, { id: 1 }]), retrievedAt })
+      ).rejects.toThrow('Duplicate Gameweek status ID: 1');
+    });
+
+    it.each(['started', 'ended'])('validates supplied snapshot %s flags', async (flag) => {
+      const season = await importSeasonData({ fetchFn: fetchStatus([]), retrievedAt });
+
+      for (const value of [false, true]) {
+        expect(() =>
+          validateSeasonData({
+            ...season,
+            gameweeks: [{ ...season.gameweeks[0], [flag]: value }],
+          })
+        ).not.toThrow();
+      }
+
+      for (const value of [null, 1, 'false']) {
+        expect(() =>
+          validateSeasonData({
+            ...season,
+            gameweeks: [{ ...season.gameweeks[0], [flag]: value }],
+          })
+        ).toThrow(`Gameweek 1 ${flag} flag must be a boolean`);
+      }
     });
   });
 

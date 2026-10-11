@@ -38,6 +38,12 @@ Pages since Phase 10; see Phase 13 for how each deployment imports data.
   Every deployment imports fresh FPL data.
 - Phase 14 (FPL average in Gameweek stats) is merged (PR #11); see
   [2026-09-30-fpl-average](./2026-09-30-fpl-average/requirements.md).
+- Phase 15 (in-progress Gameweek badge) is implemented locally. Automated
+  validation and browser layout/accessibility-tree checks pass; native
+  keyboard selection, real-data and post-deployment checks remain pending.
+- Phases 16–18 remain planned: a GitHub-first live-data refresh feasibility
+  assessment, a profit/loss correctness audit, and completed-Gameweek-only
+  season summaries.
 
 ## Phase 0 — Project scaffolding
 
@@ -453,11 +459,106 @@ Full detail:
 - **Done when:** the card shows the FPL average for ended Gameweeks, the
   validation checklist is ticked, and `npm run validate` passes.
 
+## Phase 15 — In-progress Gameweek badge
+
+Full detail:
+[requirements](./2026-10-11-gameweek-in-progress-badge/requirements.md),
+[plan](./2026-10-11-gameweek-in-progress-badge/plan.md),
+[validation](./2026-10-11-gameweek-in-progress-badge/validation.md).
+
+- Add an **In progress** badge to the current Gameweek while it is underway.
+- Place it beside the heading in the Gameweek results card only. The round
+  starts at its FPL deadline; hide the badge when start/completion status
+  is unknown rather than guessing from the latest recorded round.
+- Keep the badge visible until FPL marks the Gameweek both `finished` and
+  `data_checked`, matching the existing cup completion rule.
+- Do not label a future, not-yet-started Gameweek as in progress, or show the
+  badge for a completed historical Gameweek selected on the dashboard.
+- **Done when:** the badge correctly distinguishes not-started, in-progress,
+  finished-but-unchecked, and finished-and-checked Gameweeks, with tests for
+  the status transitions and Gameweek selection.
+
+## Phase 16 — GitHub-first live-data refresh feasibility
+
+- Assess whether the app can reliably refresh FPL data every minute during
+  live matches while keeping hosting and automation on GitHub. Do not assume
+  a scheduled GitHub Actions workflow can reliably deliver this cadence.
+- Decouple data fetching and publication from app deployment if needed:
+  refreshing scores should not require rebuilding and deploying the app.
+- During live matches, check for fresh data every minute and publish a new
+  snapshot only when relevant FPL data has changed. Use less frequent checks
+  outside matches; determine that cadence during the feasibility assessment.
+- Already-open pages must pick up published updates automatically without a
+  manual reload. Preserve the selected Gameweek and clearly expose data
+  freshness; retain the last good snapshot if a refresh fails and make stale
+  data or refresh errors explicit. Apply Phase 18's completion gate so live
+  scores do not feed season summaries before the Gameweek is finalised.
+- **Decision gate:** report whether GitHub-only hosting and automation can
+  meet the requirement before implementation. If not viable, explain the
+  limitations to the owner so this item can be deprioritised. Do not introduce
+  an external or paid service without further approval.
+- **Done when:** feasibility is documented and the owner approves proceeding;
+  if implemented, verify the one-minute live-match checks, change-only
+  publication, slower off-match checks, automatic updates in an already-open
+  page, and failure/stale-data behaviour.
+
+## Phase 17 — Profit and loss correctness audit
+
+- Audit prize pots, participant counts, tied-win splits, weekly stakes, and
+  cumulative balances against the actual season data, including Paul Bennet
+  as a reported example.
+- With 14 participants contributing £1 each, a sole weekly winner receives
+  the £14 pot: £13 net profit for that individual Gameweek after their own
+  £1 stake.
+- Retain the existing cumulative **Weekly balance** display and behaviour:
+  total weekly prize winnings minus £1 for every completed Gameweek. Do not
+  replace it with selected-Gameweek profit/loss or change its label.
+- A displayed £8 is not automatically incorrect: one £14 win and six £1
+  weekly stakes would produce an £8 cumulative balance. Verify the actual
+  completed Gameweeks and winnings before concluding there is a defect.
+- Also verify season balances use the £40 contribution and correctly include
+  any decided cup prizes, without counting stakes or prizes twice.
+- **Done when:** balances are reconciled against independently calculated
+  expected figures for the real season and representative sole-win, tied-win,
+  no-win, and unfinished-Gameweek cases; any confirmed defects are corrected
+  with regression tests, without changing the agreed display semantics.
+
+## Phase 18 — Finalise Gameweeks before updating season summaries
+
+- While a Gameweek is in progress, update only the selected Gameweek results
+  card and Gameweek stats card with its live scores. Keep their existing
+  per-Gameweek indicators; do not feed provisional results into season
+  summaries.
+- Compute overall winner standings, loser rankings (`The slugs`), profit and
+  loss, and average weekly position using completed Gameweeks only. Exclude
+  the in-progress Gameweek's wins, losses, prizes, £1 weekly stakes, and
+  positions until FPL marks it both `finished` and `data_checked`.
+- Apply the same completed-Gameweeks-only rule to player-page season
+  aggregates, including totals, averages, best/worst Gameweeks, transfers,
+  and balances, so they remain consistent with the dashboard.
+- Compute season-summary comparisons in the Gameweek stats card from
+  completed Gameweeks only, while still showing the selected Gameweek's live
+  statistics.
+- Derive these summaries from completed data on every load, not just by
+  freezing cards in an already-open page. A reload or direct player-page
+  visit must not include provisional results.
+- Once the finished-and-checked status is received, include that Gameweek in
+  all affected summaries together, without double-counting it on later
+  refreshes. Apply this independently of whether Phase 16 proceeds.
+- **Done when:** tests verify changing live scores update the two Gameweek
+  cards but leave season summaries unchanged; finished-but-unchecked data
+  remains excluded; finished-and-checked data updates dashboard and
+  player-page aggregates consistently; and reloads, historical selection,
+  repeated refreshes, and a season with no completed Gameweeks behave
+  correctly.
+
 ## Explicitly deferred / not planned
 
-- Runtime/browser-side FPL API integration or score fetching while the app
-  is running (build-time imports on deployment are in scope; see Phase 13) (Phase 11's historical import is a one-off manual backfill
-  script, not a live fetch, so it doesn't count as this).
+- Direct browser-side FPL API integration remains deferred. Phase 16 assesses
+  automatic updates from a separately refreshed data snapshot; it does not
+  commit to direct browser-side FPL requests. Build-time imports remain in
+  scope (Phase 13), and Phase 11's historical import is a one-off manual
+  backfill rather than a live fetch.
 - Any authentication, accounts, or multi-group support.
 - Any real payment/money movement (Phase 6 is display-only balance tracking).
 

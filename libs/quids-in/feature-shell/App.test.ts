@@ -62,6 +62,87 @@ describe('App', () => {
     window.location.hash = '';
   });
 
+  it.each([
+    ['before the deadline', false, false, false],
+    ['live', true, false, true],
+    ['finished but unchecked', true, false, true],
+    ['finished and checked', true, true, false],
+    ['unknown start', undefined, false, false],
+    ['unknown completion', true, undefined, false],
+    ['legacy snapshot', undefined, undefined, false],
+  ])('shows the correct badge for a %s Gameweek', (_label, started, ended, visible) => {
+    const seasonData: Season = {
+      ...statsSeason,
+      gameweeks: statsSeason.gameweeks.map((gameweek) => ({ ...gameweek, ended, started })),
+    };
+
+    renderApp(seasonData);
+
+    expect(screen.queryByText('In progress') !== null).toBe(visible);
+    expect(screen.getByRole('heading', { name: 'Gameweek 2' })).toBeTruthy();
+    expect(screen.getByRole('combobox', { name: 'Choose Gameweek' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'Gameweek 2 (current)' })).toBeTruthy();
+    expect(document.querySelector('.winner-summary')?.textContent).toContain('(Ben)');
+    expect(screen.getByRole('heading', { name: 'Profit & loss' })).toBeTruthy();
+  });
+
+  it('shows the badge beside the heading only and updates it on selection', async () => {
+    renderApp({
+      ...statsSeason,
+      gameweeks: statsSeason.gameweeks.map((gameweek) => ({
+        ...gameweek,
+        ended: false,
+        started: true,
+      })),
+    });
+
+    const badge = screen.getByText('In progress');
+
+    expect(badge.parentElement?.querySelector('h1')?.textContent).toBe('Gameweek 2');
+    expect(badge.tagName).toBe('SPAN');
+    expect(badge.hasAttribute('tabindex')).toBe(false);
+    expect(screen.getAllByText('In progress')).toHaveLength(1);
+
+    await fireEvent.change(screen.getByRole('combobox'), { target: { value: '1' } });
+
+    expect(screen.queryByText('In progress')).toBeNull();
+
+    await fireEvent.change(screen.getByRole('combobox'), { target: { value: '2' } });
+
+    expect(screen.getByText('In progress')).toBeTruthy();
+  });
+
+  it('removes the badge when refreshed snapshot props mark the round complete', async () => {
+    const liveSeason: Season = {
+      ...statsSeason,
+      gameweeks: statsSeason.gameweeks.map((gameweek) => ({
+        ...gameweek,
+        ended: false,
+        started: true,
+      })),
+    };
+    const { rerender } = render(App, { props: { seasonData: liveSeason } });
+
+    expect(screen.getByText('In progress')).toBeTruthy();
+
+    await rerender({
+      seasonData: {
+        ...liveSeason,
+        gameweeks: liveSeason.gameweeks.map((gameweek) => ({ ...gameweek, ended: true })),
+      },
+    });
+
+    expect(screen.queryByText('In progress')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Gameweek 2' })).toBeTruthy();
+  });
+
+  it('does not show the badge for an empty season', () => {
+    renderApp(emptySeason);
+
+    expect(screen.queryByText('In progress')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'No Gameweek results yet' })).toBeTruthy();
+  });
+
   it('should render the dashboard current round and overall standings', () => {
     renderApp();
 
