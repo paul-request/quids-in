@@ -40,10 +40,12 @@
         <dt>Spread</dt>
         <dd>{formatNumber(stats.spread)}</dd>
       </div>
-      <div>
-        <dt>Difference from season average</dt>
-        <dd>{formatSignedNumber(stats.differenceFromSeasonAverage)}</dd>
-      </div>
+      {#if stats.differenceFromSeasonAverage !== undefined}
+        <div>
+          <dt>Difference from season average</dt>
+          <dd>{formatSignedNumber(stats.differenceFromSeasonAverage)}</dd>
+        </div>
+      {/if}
     </dl>
   {:else}
     <p class="empty-card-message">

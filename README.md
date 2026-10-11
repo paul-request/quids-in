@@ -155,7 +155,19 @@ status fails the import explicitly.
 
 The badge reflects the snapshot's retrieval time, not the browser clock.
 A new snapshot is needed for status changes; this feature does not add
-automatic live refreshes or change season-summary calculations.
+automatic live refreshes.
+
+### Completed-Gameweek season summaries (Phase 18)
+
+Dashboard season standings, weekly losses, average positions and balances,
+along with player-page season statistics, include only Gameweeks whose
+snapshot has `ended: true`. Unfinished or unknown Gameweeks remain visible in
+the selected Gameweek results and statistics, but do not affect those season
+summaries until a refreshed snapshot marks them complete. The season-average
+comparison in Gameweek stats uses completed rounds only and is omitted until
+one has usable scores. Player Team value continues to use the latest
+available snapshot value. See the
+[Phase 18 requirements](./specs/2026-10-11-completed-gameweek-summaries/requirements.md).
 
 ### Knockout cups (Phase 12)
 
