@@ -70,6 +70,12 @@ export function calculateSeasonLeaderboard(
   const totalWins = new Map(participants.map(({ id }) => [id, createFraction(0, 1)]));
 
   for (const gameweek of gameweeks) {
+    if (!isCompletedGameweek(gameweek)) {
+      validateGameweek(gameweek, participantIndex);
+
+      continue;
+    }
+
     const result = calculateGameweekResult(participants, gameweek);
 
     for (const winner of result.winners) {
@@ -127,6 +133,12 @@ export function calculateBiggestSlugs(
   const weeklyLosses = new Map(participants.map(({ id }) => [id, 0]));
 
   for (const gameweek of gameweeks) {
+    if (!isCompletedGameweek(gameweek)) {
+      validateGameweek(gameweek, participantIndex);
+
+      continue;
+    }
+
     const result = calculateGameweekResult(participants, gameweek);
 
     for (const participantId of result.lastPlaceParticipantIds) {
@@ -165,6 +177,11 @@ export function calculateAverageWeeklyPosition(
 
   for (const gameweek of gameweeks) {
     validateGameweek(gameweek, participantIndex);
+
+    if (!isCompletedGameweek(gameweek)) {
+      continue;
+    }
+
     const rankedScores = rankParticipantsByScore(participants, gameweek, participantIndex);
 
     rankedScores.forEach(({ participantId, position }) => {
@@ -221,8 +238,9 @@ export function calculateAverageWeeklyPosition(
 /**
  * Calculates each participant's balances. Everyone pays £1 per Gameweek and
  * £1 per cup, so the season contribution is £1 × (38 + number of cups). A
- * cup's £1 counts towards the current balance from its first Gameweek, and
- * its whole pot is credited to the champion once the final is decided.
+ * completed Gameweek's £1 counts towards the current balance. A cup's £1
+ * counts from its first Gameweek, and its whole pot is credited to the
+ * champion once the final is decided.
  */
 export function calculateSeasonBalances(
   participants: Array<Participant>,
@@ -235,7 +253,7 @@ export function calculateSeasonBalances(
   validateGameweekOrder(gameweeks);
   const grossWinningsPennies = new Map(participants.map(({ id }) => [id, 0]));
   const weeklyPotPennies = participants.length * ENTRY_FEE_PENNIES;
-  const recordedGameweekCount = gameweeks.length;
+  const recordedGameweekCount = gameweeks.filter(isCompletedGameweek).length;
   const latestGameweek = gameweeks[gameweeks.length - 1]?.gameweek ?? 0;
   const startedCupCount = cupPrizes.filter(
     ({ startGameweek }) => startGameweek <= latestGameweek
@@ -258,6 +276,12 @@ export function calculateSeasonBalances(
   }
 
   for (const gameweek of gameweeks) {
+    if (!isCompletedGameweek(gameweek)) {
+      validateGameweek(gameweek, participantIndex);
+
+      continue;
+    }
+
     const result = calculateGameweekResult(participants, gameweek);
     const baseSharePennies = Math.floor(weeklyPotPennies / result.winners.length);
     const leftoverPennies = weeklyPotPennies % result.winners.length;
@@ -316,14 +340,17 @@ export function calculateGameweekStats(
   }
 
   const seasonGameweekAverages = gameweeks
-    .map((gameweek) => getUsableScores(gameweek, participantIndex))
-    .filter((scores) => scores.length > 0)
-    .map(calculateAverage);
+    .map((gameweek) => ({
+      gameweek,
+      scores: getUsableScores(gameweek, participantIndex),
+    }))
+    .filter(({ gameweek, scores }) => isCompletedGameweek(gameweek) && scores.length > 0)
+    .map(({ scores }) => calculateAverage(scores));
   const highestScore = Math.max(...selectedScores);
   const lowestScore = Math.min(...selectedScores);
   const leagueAverage = calculateAverage(selectedScores);
   const seasonAverage =
-    seasonGameweekAverages.length > 0 ? calculateAverage(seasonGameweekAverages) : leagueAverage;
+    seasonGameweekAverages.length > 0 ? calculateAverage(seasonGameweekAverages) : undefined;
   const { fplAverage } = selectedGameweekInSeason;
 
   return {
@@ -332,7 +359,9 @@ export function calculateGameweekStats(
     leagueAverage,
     lowestScore,
     spread: highestScore - lowestScore,
-    differenceFromSeasonAverage: leagueAverage - seasonAverage,
+    ...(seasonAverage === undefined
+      ? {}
+      : { differenceFromSeasonAverage: leagueAverage - seasonAverage }),
     ...(fplAverage === undefined
       ? {}
       : { fplAverage, differenceFromFplAverage: leagueAverage - fplAverage }),
@@ -357,6 +386,11 @@ export function calculatePlayerStats(
 
   const recordedScores = gameweeks.flatMap((gameweek) => {
     validateGameweek(gameweek, participantIndex);
+
+    if (!isCompletedGameweek(gameweek)) {
+      return [];
+    }
+
     const score = gameweek.scores[String(participantId)];
 
     if (!score) {
@@ -384,7 +418,7 @@ export function calculatePlayerStats(
   const highestScore = Math.max(...recordedScores.map(({ points }) => points));
   const lowestScore = Math.min(...recordedScores.map(({ points }) => points));
   const totalPosition = gameweeks.reduce((total, gameweek) => {
-    if (!gameweek.scores[String(participantId)]) {
+    if (!isCompletedGameweek(gameweek) || !gameweek.scores[String(participantId)]) {
       return total;
     }
 
@@ -449,6 +483,10 @@ function getUsableScores(gameweek: Gameweek, participantIndex: ParticipantIndex)
 
 function calculateAverage(values: Array<number>): number {
   return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+function isCompletedGameweek(gameweek: Gameweek): boolean {
+  return gameweek.ended === true;
 }
 
 function getCompetitionPosition(

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/svelte';
+import { fireEvent, render, screen, within } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import historicalSeason from '../../../data/season-2025-26.json';
 import type { CupDrawFile } from '../utility/cups.interfaces';
@@ -6,7 +6,12 @@ import type { Season } from '../utility/results.interfaces';
 
 import App from './App.svelte';
 
-function renderApp(seasonData: Season = historicalSeason, cupDraw?: CupDrawFile): void {
+const completedHistoricalSeason: Season = {
+  ...historicalSeason,
+  gameweeks: historicalSeason.gameweeks.map((gameweek) => ({ ...gameweek, ended: true })),
+};
+
+function renderApp(seasonData: Season = completedHistoricalSeason, cupDraw?: CupDrawFile): void {
   render(App, { props: cupDraw ? { cupDraw, seasonData } : { seasonData } });
 }
 
@@ -22,6 +27,7 @@ const emptySeason: Season = {
 const statsSeason: Season = {
   gameweeks: [
     {
+      ended: true,
       gameweek: 1,
       scores: {
         '1': { points: 20, transfers: 0, transferCost: 0 },
@@ -29,6 +35,7 @@ const statsSeason: Season = {
       },
     },
     {
+      ended: true,
       gameweek: 2,
       scores: {
         '1': { points: 10, transfers: 0, transferCost: 0, squadValue: 1005, bank: 5 },
@@ -211,6 +218,125 @@ describe('App', () => {
     expect(screen.getByText('+5')).toBeTruthy();
   });
 
+  it('keeps season summaries unchanged for live scores and includes them after completion', async () => {
+    const seasonData: Season = {
+      gameweeks: [
+        {
+          ended: true,
+          gameweek: 1,
+          scores: {
+            '1': { points: 60, transfers: 0, transferCost: 0 },
+            '2': { points: 40, transfers: 0, transferCost: 0 },
+          },
+        },
+        {
+          ended: false,
+          gameweek: 2,
+          scores: {
+            '1': { points: 10, transfers: 0, transferCost: 0 },
+            '2': { points: 80, transfers: 0, transferCost: 0 },
+          },
+        },
+      ],
+      participants: statsSeason.participants,
+      season: '2025-26',
+    };
+    const { rerender } = render(App, { props: { seasonData } });
+
+    const getWins = (name: string): string | null => {
+      const row = within(screen.getByRole('region', { name: 'Overall standings' }))
+        .getByRole('link', { name })
+        .closest('tr');
+
+      return row?.querySelectorAll('td')[1]?.textContent ?? null;
+    };
+    const getBalance = (name: string): string | null => {
+      const row = within(screen.getByRole('region', { name: 'Profit & loss' }))
+        .getByRole('link', { name })
+        .closest('tr');
+
+      return row?.querySelectorAll('td')[0]?.textContent?.trim() ?? null;
+    };
+
+    expect(document.querySelector('.winner-summary')?.textContent).toContain('(Ben)');
+    expect(getWins('Alice Aces High')).toBe('1');
+    expect(getWins('Ben Biscuit Boys')).toBe('0');
+    expect(getBalance('Alice Aces High')).toBe('-£36.00');
+
+    const changedLiveSeason: Season = {
+      ...seasonData,
+      gameweeks: seasonData.gameweeks.map((gameweek) =>
+        gameweek.gameweek === 2
+          ? {
+              ...gameweek,
+              scores: {
+                '1': { points: 100, transfers: 0, transferCost: 0 },
+                '2': { points: 0, transfers: 0, transferCost: 0 },
+              },
+            }
+          : gameweek
+      ),
+    };
+    await rerender({ seasonData: changedLiveSeason });
+
+    expect(document.querySelector('.winner-summary')?.textContent).toContain('(Alice)');
+    expect(getWins('Alice Aces High')).toBe('1');
+    expect(getWins('Ben Biscuit Boys')).toBe('0');
+    expect(getBalance('Alice Aces High')).toBe('-£36.00');
+
+    await rerender({
+      seasonData: {
+        ...changedLiveSeason,
+        gameweeks: changedLiveSeason.gameweeks.map((gameweek) => ({
+          ...gameweek,
+          ended: true,
+        })),
+      },
+    });
+
+    expect(getWins('Alice Aces High')).toBe('2');
+    expect(getWins('Ben Biscuit Boys')).toBe('0');
+    expect(getBalance('Alice Aces High')).toBe('-£34.00');
+  });
+
+  it('omits the season-stat comparison when the snapshot has no completed baseline', () => {
+    renderApp({
+      ...statsSeason,
+      gameweeks: statsSeason.gameweeks.map((gameweek) => ({ ...gameweek, ended: undefined })),
+    });
+
+    expect(screen.queryByText('Difference from season average')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Gameweek 2' })).toBeTruthy();
+  });
+
+  it('does not show live scores as player stats on a direct route and keeps the latest Team value', () => {
+    window.location.hash = '#/players/1';
+    renderApp({
+      ...statsSeason,
+      gameweeks: [
+        {
+          ended: false,
+          gameweek: 2,
+          scores: {
+            '1': {
+              points: 100,
+              transfers: 2,
+              transferCost: 4,
+              squadValue: 1010,
+              bank: 5,
+            },
+            '2': { points: 80, transfers: 0, transferCost: 0 },
+          },
+        },
+      ],
+    });
+
+    expect(screen.getByRole('heading', { name: 'No recorded scores for Alice' })).toBeTruthy();
+    expect(screen.getByText('£101.5m')).toBeTruthy();
+    expect(screen.getByText('-£38.00')).toBeTruthy();
+    expect(screen.queryByText('Total points')).toBeNull();
+  });
+
   it('should toggle summary-card numeric sorting from their headings', async () => {
     renderApp();
 
@@ -283,7 +409,15 @@ describe('App', () => {
 
   it('should link to the cups and show hidden pairings until the reveal Gameweek ends', async () => {
     window.location.hash = '#/';
-    renderApp(statsSeason, cupDraw);
+    renderApp(
+      {
+        ...statsSeason,
+        gameweeks: statsSeason.gameweeks.map((gameweek) =>
+          gameweek.gameweek === 2 ? { ...gameweek, ended: false } : gameweek
+        ),
+      },
+      cupDraw
+    );
 
     const cupsLink = screen.getByRole('link', { name: 'Cups' });
 

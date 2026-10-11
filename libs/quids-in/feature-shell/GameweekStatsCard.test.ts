@@ -74,6 +74,22 @@ describe('GameweekStatsCard', () => {
     expect(document.querySelectorAll('dt')).toHaveLength(5);
   });
 
+  it('hides the season comparison when no completed baseline is available', () => {
+    render(GameweekStatsCard, {
+      props: {
+        stats: {
+          available: true,
+          highestScore: 70,
+          leagueAverage: 48.5,
+          lowestScore: 33,
+          spread: 37,
+        },
+      },
+    });
+
+    expect(screen.queryByText('Difference from season average')).toBeNull();
+  });
+
   it('renders an explicit message when statistics are unavailable', () => {
     render(GameweekStatsCard, { props: { stats: { available: false } } });
 
