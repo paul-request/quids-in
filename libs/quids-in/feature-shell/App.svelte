@@ -16,6 +16,7 @@
     calculateTeamValue,
   } from '../utility/results';
   import { indexParticipantsById } from '../utility/formatting';
+  import { isCurrentGameweekInProgress } from '../utility/gameweek-status';
   import type { Season } from '../utility/results.interfaces';
 
   import Header from './Header.svelte';
@@ -145,7 +146,12 @@
                 ? 'Current round'
                 : 'Previous round'}
             </p>
-            <h1 id="round-heading">Gameweek {selectedGameweek.gameweek}</h1>
+            <div class="gameweek-heading">
+              <h1 id="round-heading">Gameweek {selectedGameweek.gameweek}</h1>
+              {#if isCurrentGameweekInProgress(selectedGameweek, latestGameweek)}
+                <span class="gameweek-status-badge">In progress</span>
+              {/if}
+            </div>
           </div>
           <label class="gameweek-picker">
             <span class="visually-hidden">Choose Gameweek</span>

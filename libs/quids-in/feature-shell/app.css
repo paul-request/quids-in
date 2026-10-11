@@ -206,6 +206,23 @@ a:focus-visible {
   margin: 0;
 }
 
+.gameweek-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gameweek-status-badge {
+  width: fit-content;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  color: #151000;
+  background: #ffe36e;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
 .eyebrow {
   margin: 0 0 0.25rem;
   color: #c8d4ff;
