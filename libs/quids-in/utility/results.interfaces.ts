@@ -101,7 +101,7 @@ export interface AvailableGameweekStats {
   lowestScore: number;
   spread: number;
   differenceFromFplAverage?: number;
-  differenceFromSeasonAverage: number;
+  differenceFromSeasonAverage?: number;
 }
 
 export interface UnavailableGameweekStats {

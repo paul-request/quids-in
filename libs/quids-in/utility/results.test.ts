@@ -19,7 +19,7 @@ const participants: Array<Participant> = [
 ];
 
 function gameweek(scores: Record<string, number>): Gameweek {
-  return { gameweek: 1, scores: createScores(scores) };
+  return { ended: true, gameweek: 1, scores: createScores(scores) };
 }
 
 function createScores(
@@ -64,6 +64,7 @@ describe('calculateGameweekResult', () => {
     it('derives selected-Gameweek metrics and includes it in the season benchmark', () => {
       const firstGameweek = gameweek({ '1': 10, '2': 40, '3': 70 });
       const secondGameweek: Gameweek = {
+        ended: true,
         gameweek: 2,
         scores: createScores({ '1': 10, '2': 50, '3': 90 }),
       };
@@ -84,6 +85,7 @@ describe('calculateGameweekResult', () => {
     it('excludes missing scores and preserves decimal difference', () => {
       const firstGameweek = gameweek({ '1': 10, '2': 20 });
       const secondGameweek: Gameweek = {
+        ended: true,
         gameweek: 2,
         scores: createScores({ '1': 20, '3': 31 }),
       };
@@ -98,6 +100,51 @@ describe('calculateGameweekResult', () => {
         spread: 11,
         differenceFromSeasonAverage: 5.25,
       });
+    });
+
+    it('keeps live selected-round statistics and uses completed rounds for the season baseline', () => {
+      const completed: Gameweek = {
+        ended: true,
+        gameweek: 1,
+        scores: createScores({ '1': 20, '2': 30 }),
+      };
+      const live: Gameweek = {
+        ended: false,
+        gameweek: 2,
+        scores: createScores({ '1': 0, '2': 40 }),
+      };
+      const unknown: Gameweek = {
+        gameweek: 3,
+        scores: createScores({ '1': 100, '2': 200 }),
+      };
+
+      const result = calculateGameweekStats(participants, [completed, live, unknown], live);
+
+      expect(result).toMatchObject({
+        available: true,
+        highestScore: 40,
+        lowestScore: 0,
+        leagueAverage: 20,
+        differenceFromSeasonAverage: -5,
+      });
+    });
+
+    it('omits the season comparison when no completed Gameweek has usable scores', () => {
+      const live: Gameweek = {
+        ended: false,
+        gameweek: 1,
+        scores: createScores({ '1': 20, '2': 30 }),
+      };
+
+      const result = calculateGameweekStats(participants, [live], live);
+
+      expect(result).toMatchObject({
+        available: true,
+        highestScore: 30,
+        leagueAverage: 25,
+        lowestScore: 20,
+      });
+      expect(result).not.toHaveProperty('differenceFromSeasonAverage');
     });
 
     it('compares the league average with the FPL average when it is recorded', () => {
@@ -251,7 +298,7 @@ describe('calculateSeasonLeaderboard', () => {
   it('aggregates fractional wins and identifies season last place', () => {
     const gameweeks: Array<Gameweek> = [
       gameweek({ '1': 72, '2': 72, '3': 61 }),
-      { gameweek: 2, scores: createScores({ '1': 60, '2': 61, '3': 60 }) },
+      { ended: true, gameweek: 2, scores: createScores({ '1': 60, '2': 61, '3': 60 }) },
     ];
 
     const result = calculateSeasonLeaderboard(participants, gameweeks);
@@ -264,11 +311,43 @@ describe('calculateSeasonLeaderboard', () => {
     expect(result.lastPlaceParticipantIds).toEqual([3]);
   });
 
+  it('excludes unfinished and unknown Gameweeks from season summaries', () => {
+    const gameweeks: Array<Gameweek> = [
+      gameweek({ '1': 80, '2': 70, '3': 60 }),
+      {
+        ended: false,
+        gameweek: 2,
+        scores: createScores({ '1': 10, '2': 20, '3': 90 }),
+      },
+      {
+        gameweek: 3,
+        scores: createScores({ '1': 10, '2': 100, '3': 50 }),
+      },
+    ];
+
+    expect(calculateSeasonLeaderboard(participants, gameweeks)).toMatchObject({
+      rows: [
+        { participantId: 1, totalWins: 1 },
+        { participantId: 2, totalWins: 0 },
+        { participantId: 3, totalWins: 0 },
+      ],
+      lastPlaceParticipantIds: [2, 3],
+    });
+    expect(calculateBiggestSlugs(participants, gameweeks)).toEqual([
+      { participantId: 3, weeklyLosses: 1 },
+    ]);
+    expect(calculateAverageWeeklyPosition(participants, gameweeks)).toEqual([
+      { participantId: 1, averagePosition: 1, averageWeeklyScore: 80 },
+      { participantId: 2, averagePosition: 2, averageWeeklyScore: 70 },
+      { participantId: 3, averagePosition: 3, averageWeeklyScore: 60 },
+    ]);
+  });
+
   describe('calculateAverageWeeklyPosition', () => {
     it('uses competition ranking and averages positions across Gameweeks', () => {
       const result = calculateAverageWeeklyPosition(participants, [
         gameweek({ '1': 72, '2': 61, '3': 61 }),
-        { gameweek: 2, scores: createScores({ '1': 50, '2': 70, '3': 40 }) },
+        { ended: true, gameweek: 2, scores: createScores({ '1': 50, '2': 70, '3': 40 }) },
       ]);
 
       expect(result).toEqual([
@@ -284,7 +363,7 @@ describe('calculateSeasonLeaderboard', () => {
         { id: 4, name: 'Daniel', teamName: 'Dazzle United' },
       ];
       const result = calculateAverageWeeklyPosition(fourParticipants, [
-        { gameweek: 1, scores: createScores({ '1': 72, '2': 72, '3': 72, '4': 50 }) },
+        { ended: true, gameweek: 1, scores: createScores({ '1': 72, '2': 72, '3': 72, '4': 50 }) },
       ]);
 
       expect(result).toEqual([
@@ -296,6 +375,42 @@ describe('calculateSeasonLeaderboard', () => {
     });
 
     describe('calculateSeasonBalances', () => {
+      it('excludes unfinished winnings and weekly stakes but preserves the season contribution', () => {
+        const gameweeks: Array<Gameweek> = [
+          gameweek({ '1': 80, '2': 70, '3': 60 }),
+          {
+            ended: false,
+            gameweek: 2,
+            scores: createScores({ '1': 10, '2': 90, '3': 20 }),
+          },
+          {
+            gameweek: 3,
+            scores: createScores({ '1': 10, '2': 20, '3': 100 }),
+          },
+        ];
+
+        expect(calculateSeasonBalances(participants, gameweeks)).toEqual([
+          {
+            participantId: 1,
+            grossWinningsPennies: 300,
+            netBalancePennies: -3500,
+            weeklyBalancePennies: 200,
+          },
+          {
+            participantId: 2,
+            grossWinningsPennies: 0,
+            netBalancePennies: -3800,
+            weeklyBalancePennies: -100,
+          },
+          {
+            participantId: 3,
+            grossWinningsPennies: 0,
+            netBalancePennies: -3800,
+            weeklyBalancePennies: -100,
+          },
+        ]);
+      });
+
       it('awards the full pot to a sole winner', () => {
         const result = calculateSeasonBalances(participants, [
           gameweek({ '1': 72, '2': 61, '3': 50 }),
@@ -328,6 +443,7 @@ describe('calculateSeasonLeaderboard', () => {
           [...participants, { id: 4, name: 'Daniel', teamName: 'Dazzle United' }],
           [
             {
+              ended: true,
               gameweek: 1,
               scores: createScores({ '1': 72, '2': 72, '3': 72, '4': 61 }),
             },
@@ -360,7 +476,7 @@ describe('calculateSeasonLeaderboard', () => {
       it('bases the current balance on the number of recorded Gameweeks, not the Gameweek number', () => {
         const result = calculateSeasonBalances(participants, [
           gameweek({ '1': 72, '2': 61, '3': 50 }),
-          { gameweek: 5, scores: createScores({ '1': 60, '2': 61, '3': 70 }) },
+          { ended: true, gameweek: 5, scores: createScores({ '1': 60, '2': 61, '3': 70 }) },
         ]);
 
         expect(result.find((row) => row.participantId === 3)).toEqual({
@@ -412,7 +528,7 @@ describe('calculateSeasonLeaderboard', () => {
       it('deducts a cup entry from the current balance from its first Gameweek', () => {
         const gameweeks = [
           gameweek({ '1': 72, '2': 61, '3': 50 }),
-          { gameweek: 2, scores: createScores({ '1': 72, '2': 61, '3': 50 }) },
+          { ended: true, gameweek: 2, scores: createScores({ '1': 72, '2': 61, '3': 50 }) },
         ];
         const result = calculateSeasonBalances(participants, gameweeks, [
           { startGameweek: 2 },
@@ -430,7 +546,7 @@ describe('calculateSeasonLeaderboard', () => {
       it('credits the whole cup pot to the champion and keeps penny totals exact', () => {
         const gameweeks = [
           gameweek({ '1': 72, '2': 61, '3': 50 }),
-          { gameweek: 2, scores: createScores({ '1': 72, '2': 61, '3': 50 }) },
+          { ended: true, gameweek: 2, scores: createScores({ '1': 72, '2': 61, '3': 50 }) },
         ];
         const result = calculateSeasonBalances(participants, gameweeks, [
           { startGameweek: 1, winnerParticipantId: 3 },
@@ -472,7 +588,7 @@ describe('calculateSeasonLeaderboard', () => {
     it('treats missing scores as zero and includes every participant', () => {
       const result = calculateAverageWeeklyPosition(participants, [
         gameweek({ '1': 72, '2': 61 }),
-        { gameweek: 2, scores: createScores({ '1': 50, '3': 40 }) },
+        { ended: true, gameweek: 2, scores: createScores({ '1': 50, '3': 40 }) },
       ]);
 
       expect(result).toEqual([
@@ -501,8 +617,8 @@ describe('calculateSeasonLeaderboard', () => {
     it('orders participants by the number of last-place finishes', () => {
       const result = calculateBiggestSlugs(participants, [
         gameweek({ '1': 72, '2': 68, '3': 61 }),
-        { gameweek: 2, scores: createScores({ '1': 60, '2': 61, '3': 60 }) },
-        { gameweek: 3, scores: createScores({ '1': 50, '2': 50, '3': 61 }) },
+        { ended: true, gameweek: 2, scores: createScores({ '1': 60, '2': 61, '3': 60 }) },
+        { ended: true, gameweek: 3, scores: createScores({ '1': 50, '2': 50, '3': 61 }) },
       ]);
 
       expect(result).toEqual([
@@ -589,18 +705,22 @@ describe('calculateSeasonLeaderboard', () => {
     ];
     const result = calculateSeasonLeaderboard(fractionalParticipants, [
       {
+        ended: true,
         gameweek: 1,
         scores: createScores({ '1': 10, '2': 10, '3': 0, '4': 0 }),
       },
       {
+        ended: true,
         gameweek: 2,
         scores: createScores({ '1': 0, '2': 10, '3': 10, '4': 10 }),
       },
       {
+        ended: true,
         gameweek: 3,
         scores: createScores({ '1': 10, '2': 0, '3': 10, '4': 0 }),
       },
       {
+        ended: true,
         gameweek: 4,
         scores: createScores({ '1': 10, '2': 0, '3': 0, '4': 10 }),
       },
@@ -612,9 +732,62 @@ describe('calculateSeasonLeaderboard', () => {
 });
 
 describe('calculatePlayerStats', () => {
+  it('uses completed Gameweeks for player aggregates but keeps latest Team value available', () => {
+    const gameweeks: Array<Gameweek> = [
+      {
+        ended: true,
+        gameweek: 1,
+        scores: {
+          '1': { points: 50, transfers: 1, transferCost: 0, squadValue: 1000, bank: 5 },
+          ...createScores({ '2': 40, '3': 30 }),
+        },
+      },
+      {
+        ended: false,
+        gameweek: 2,
+        scores: {
+          '1': { points: 100, transfers: 4, transferCost: 0, squadValue: 1010, bank: 10 },
+          ...createScores({ '2': 80, '3': 70 }),
+        },
+      },
+      {
+        gameweek: 3,
+        scores: createScores({ '1': 200, '2': 180, '3': 170 }),
+      },
+    ];
+
+    expect(calculatePlayerStats(participants, gameweeks, 1)).toMatchObject({
+      totalPoints: 50,
+      averageWeeklyScore: 50,
+      highestScore: 50,
+      highestScoreGameweeks: [1],
+      lowestScore: 50,
+      lowestScoreGameweeks: [1],
+      averageLeaguePosition: 1,
+      seasonBalancePennies: -3500,
+      currentBalancePennies: 200,
+      totalTransfers: 1,
+    });
+    expect(calculateTeamValue(participants, gameweeks, 1)).toEqual({
+      available: true,
+      teamValueTenthsOfMillion: 1020,
+    });
+  });
+
+  it('returns no player season stats when the player has no completed score', () => {
+    const liveGameweek: Gameweek = {
+      ended: false,
+      gameweek: 1,
+      scores: createScores({ '1': 50, '2': 40, '3': 30 }),
+    };
+
+    expect(calculatePlayerStats(participants, [liveGameweek], 1)).toBeUndefined();
+  });
+
   it('derives player scores, positions, tied extrema, and reused balances', () => {
     const result = calculatePlayerStats(participants, [
       {
+        ended: true,
         gameweek: 1,
         scores: createScores(
           { '1': 50, '2': 50, '3': 30 },
@@ -622,13 +795,14 @@ describe('calculatePlayerStats', () => {
         ),
       },
       {
+        ended: true,
         gameweek: 2,
         scores: createScores(
           { '1': 70, '2': 60, '3': 70 },
           { '1': 2 }
         ),
       },
-      { gameweek: 3, scores: createScores({ '1': 50, '2': 40, '3': 30 }) },
+      { ended: true, gameweek: 3, scores: createScores({ '1': 50, '2': 40, '3': 30 }) },
     ], 1);
 
     expect(result).toEqual({
@@ -649,7 +823,7 @@ describe('calculatePlayerStats', () => {
   it('excludes missing player scores from score and position statistics', () => {
     const result = calculatePlayerStats(participants, [
       gameweek({ '1': 50, '2': 30, '3': 10 }),
-      { gameweek: 2, scores: createScores({ '2': 70, '3': 60 }) },
+      { ended: true, gameweek: 2, scores: createScores({ '2': 70, '3': 60 }) },
     ], 1);
 
     expect(result?.totalPoints).toBe(50);
@@ -672,7 +846,7 @@ describe('calculatePlayerStats', () => {
     ];
     const result = calculatePlayerStats(
       fourParticipants,
-      [{ gameweek: 1, scores: createScores({ '1': 72, '2': 72, '3': 72, '4': 50 }) }],
+      [{ ended: true, gameweek: 1, scores: createScores({ '1': 72, '2': 72, '3': 72, '4': 50 }) }],
       3
     );
 
