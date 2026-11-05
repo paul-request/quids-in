@@ -28,13 +28,17 @@ This phase is ready to merge when every applicable check below passes.
 
 ## Dashboard card
 
-- [ ] A card titled `Gameweek stats` appears as the first summary-grid card
-      directly beneath the selected Gameweek card.
-- [ ] The card displays `Highest score`, `Lowest score`, `League average`,
-      `Spread`, and `Variance from season average`.
+- [ ] A card titled `Gameweek {selected number} stats` appears as the first
+      summary-grid card directly beneath the selected Gameweek card.
+- [ ] The selected Gameweek's highest- and lowest-score lines, including
+      participant names, appear in Gameweek stats and not in the round card.
+- [ ] The moved score lines preserve tied names and existing round-result
+      values; the remaining aggregate rows include `League average`,
+      `Spread`, and available comparison metrics.
 - [ ] Every score-derived value uses at most two decimal places without
       unnecessary trailing zeroes.
-- [ ] Changing the Gameweek selector updates the card values and variance.
+- [ ] Changing the Gameweek selector updates the card title, score lines,
+      values, and variance.
 - [ ] An all-missing selected Gameweek presents a clear unavailable message.
 - [ ] The card is a labelled region with a visible `h2` and semantic markup
       that associates every metric name with its value.

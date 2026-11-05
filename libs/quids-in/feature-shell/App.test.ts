@@ -154,12 +154,16 @@ describe('App', () => {
     renderApp();
 
     expect(screen.getByRole('heading', { name: 'Gameweek 3' })).toBeTruthy();
-    expect(screen.getByText(/🏆 Highest score:/)).toBeTruthy();
+    const gameweekStats = screen.getByRole('region', { name: 'Gameweek 3 stats' });
+
+    expect(within(gameweekStats).getByText(/Highest score:/)).toBeTruthy();
+    expect(within(gameweekStats).getByText(/Lowest score:/)).toBeTruthy();
     expect(screen.getByText('Showing Gameweek 3 results.')).toBeTruthy();
-    expect(document.querySelector('.winner-summary')?.textContent).toContain('(Daniel)');
-    expect(document.querySelector('.lowest-score')?.textContent).toContain('(Leo)');
+    expect(gameweekStats.querySelector('.winner-summary')?.textContent).toContain('(Daniel)');
+    expect(gameweekStats.querySelector('.lowest-score')?.textContent).toContain('(Leo)');
+    expect(document.querySelector('.gameweek-card .winner-summary')).toBeNull();
+    expect(document.querySelector('.gameweek-card .lowest-score')).toBeNull();
     expect(screen.getByRole('heading', { name: 'Overall standings' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Gameweek stats' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'The slugs' })).toBeTruthy();
     expect(screen.getByRole('columnheader', { name: 'Losses' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Weekly averages' })).toBeTruthy();
@@ -209,13 +213,21 @@ describe('App', () => {
   it('should update Gameweek stats when the selected Gameweek changes', async () => {
     renderApp(statsSeason);
 
+    let gameweekStats = screen.getByRole('region', { name: 'Gameweek 2 stats' });
+
     expect(screen.getByText('-5')).toBeTruthy();
+    expect(gameweekStats.querySelector('.winner-summary')?.textContent).toContain('30 (Ben)');
+    expect(gameweekStats.querySelector('.lowest-score')?.textContent).toContain('10 (Alice)');
 
     await fireEvent.change(screen.getByRole('combobox', { name: 'Choose Gameweek' }), {
       target: { value: '1' },
     });
 
+    gameweekStats = screen.getByRole('region', { name: 'Gameweek 1 stats' });
+
     expect(screen.getByText('+5')).toBeTruthy();
+    expect(gameweekStats.querySelector('.winner-summary')?.textContent).toContain('40 (Ben)');
+    expect(gameweekStats.querySelector('.lowest-score')?.textContent).toContain('20 (Alice)');
   });
 
   it('keeps season summaries unchanged for live scores and includes them after completion', async () => {

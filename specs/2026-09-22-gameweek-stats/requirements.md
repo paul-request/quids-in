@@ -21,9 +21,12 @@ In scope:
   Gameweek.
 - Derive signed variance between the selected Gameweek league average and the
   season benchmark.
-- Add a dashboard card titled `Gameweek stats` as the first card in the
-  responsive summary grid beneath the selected Gameweek card.
-- Update the displayed card values when the selected Gameweek changes.
+- Add a dashboard card titled `Gameweek {number} stats` as the first card in
+  the responsive summary grid beneath the selected Gameweek card.
+- Move the selected Gameweek's highest- and lowest-score summary lines,
+  including participant names, from the round card into Gameweek stats.
+- Update the card title and displayed values when the selected Gameweek
+  changes.
 - Add utility and presentation tests for calculations, formatting, unavailable
   states, selector updates, and accessible semantics.
 
@@ -42,9 +45,13 @@ Out of scope:
 - **Score source:** All statistics use the imported scoreboard `points` values
   already stored in the Gameweek score map. Transfer deductions must not be
   applied again.
-- **Highest and lowest scores:** Use the maximum and minimum usable scores in
-  the selected Gameweek. Tied values remain a single shared metric, with no
-  player ranking or tie-break displayed in this card.
+- **Highest and lowest statistics:** Use the maximum and minimum usable scores
+  in the selected Gameweek for the aggregates and spread. Missing scores remain
+  excluded from these statistics.
+- **Round score summaries:** Move the existing highest- and lowest-score lines,
+  with all tied participant names, into Gameweek stats. Preserve the existing
+  round-result rules for these lines, including treating missing participant
+  scores as zero.
 - **League average:** Divide the sum of usable selected-Gameweek scores by the
   number of usable scores.
 - **Spread:** Calculate the selected Gameweek's highest usable score minus its
@@ -62,9 +69,10 @@ Out of scope:
 - **Precision:** Display score-derived values with at most two decimal places
   and remove unnecessary trailing zeroes. Preserve the calculation precision
   until formatting for display.
-- **Card content:** Render the five labelled metrics: `Highest score`, `Lowest
-  score`, `League average`, `Spread`, and `Variance from season average`.
-- **Card position:** Place `Gameweek stats` first in the existing
+- **Card content:** Show the moved highest- and lowest-score summaries, plus
+  the existing `League average`, `Spread`, and available comparison metrics.
+- **Card title and position:** Title the card `Gameweek {number} stats` and
+  place it first in the existing
   season-summary grid, directly beneath the full-width selected Gameweek
   card, before overall standings, `The slugs`, average weekly position, and
   profit and loss.

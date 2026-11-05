@@ -1,27 +1,55 @@
 <script lang="ts">
-  import type { GameweekStats } from '../utility/results.interfaces';
-  import { formatNumber, formatSignedNumber } from '../utility/formatting';
+  import type {
+    GameweekResult,
+    GameweekStats,
+    Participant,
+  } from '../utility/results.interfaces';
+  import {
+    formatNumber,
+    formatSignedNumber,
+    indexParticipantsById,
+  } from '../utility/formatting';
 
-  let { stats }: { stats: GameweekStats } = $props();
+  let {
+    gameweek,
+    participants,
+    result,
+    stats,
+  }: {
+    gameweek: number;
+    participants: Array<Participant>;
+    result: GameweekResult;
+    stats: GameweekStats;
+  } = $props();
+  let participantsById = $derived(indexParticipantsById(participants));
+
+  function getParticipantNames(participantIds: Array<number>): string {
+    return participantIds
+      .map(
+        (participantId) =>
+          participantsById.get(participantId)?.name ?? 'Unknown participant',
+      )
+      .join(', ');
+  }
 </script>
 
 <section class="dashboard-section gameweek-stats" aria-labelledby="gameweek-stats-heading">
   <div class="section-heading">
     <div>
       <p class="eyebrow">Selected Gameweek</p>
-      <h2 id="gameweek-stats-heading">Gameweek stats</h2>
+      <h2 id="gameweek-stats-heading">Gameweek {gameweek} stats</h2>
     </div>
   </div>
+  <p class="winner-summary">
+    <span aria-hidden="true">🏆 </span>Highest score: <strong>{formatNumber(result.highestScore)}</strong>
+    (<strong>{getParticipantNames(result.winners.map((winner) => winner.participantId))}</strong>).
+  </p>
+  <p class="lowest-score">
+    <span aria-hidden="true">🐌 </span>Lowest score: <strong>{formatNumber(result.lowestScore)}</strong>
+    (<strong>{getParticipantNames(result.lastPlaceParticipantIds)}</strong>).
+  </p>
   {#if stats.available}
     <dl class="gameweek-stats__list">
-      <div>
-        <dt>Highest score</dt>
-        <dd>{formatNumber(stats.highestScore)}</dd>
-      </div>
-      <div>
-        <dt>Lowest score</dt>
-        <dd>{formatNumber(stats.lowestScore)}</dd>
-      </div>
       <div>
         <dt>League average</dt>
         <dd>{formatNumber(stats.leagueAverage)}</dd>
