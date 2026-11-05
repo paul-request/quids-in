@@ -71,6 +71,11 @@
         )
       : undefined,
   );
+  let selectedGameweekResult = $derived(
+    selectedGameweek
+      ? calculateGameweekResult(seasonData.participants, selectedGameweek)
+      : undefined,
+  );
   let currentHash = $state(typeof window === 'undefined' ? '#/' : window.location.hash || '#/');
   let playerId = $derived(getPlayerId(currentHash));
   let selectedPlayer = $derived(
@@ -96,14 +101,6 @@
       ? undefined
       : calculateTeamValue(seasonData.participants, seasonData.gameweeks, playerId),
   );
-
-  function getParticipantName(participantId: number): string {
-    return participantsById.get(participantId)?.name ?? 'Unknown participant';
-  }
-
-  function getParticipantNames(participantIds: Array<number>): string {
-    return participantIds.map(getParticipantName).join(', ');
-  }
 
   function getPlayerId(hash: string): number | undefined {
     const match = /^#\/players\/(\d+)$/.exec(hash);
@@ -133,11 +130,7 @@
   <Header action={displayedCups.length > 0 ? 'cups' : 'none'} />
 
   <div class="dashboard-layout">
-    {#if latestGameweek && selectedGameweek}
-      {@const selectedResult = calculateGameweekResult(
-        seasonData.participants,
-        selectedGameweek,
-      )}
+    {#if latestGameweek && selectedGameweek && selectedGameweekResult}
       <section class="dashboard-section gameweek-card" aria-labelledby="round-heading">
         <div class="section-heading">
           <div>
@@ -168,18 +161,10 @@
         <p class="visually-hidden" aria-atomic="true" aria-live="polite">
           Showing Gameweek {selectedGameweek.gameweek} results.
         </p>
-        <p class="winner-summary">
-          🏆 Highest score: <strong>{selectedResult.highestScore}</strong>
-          (<strong>{getParticipantNames(selectedResult.winners.map((winner) => winner.participantId))}</strong>).
-        </p>
-        <p class="lowest-score">
-          🐌 Lowest score: <strong>{selectedResult.lowestScore}</strong>
-          (<strong>{getParticipantNames(selectedResult.lastPlaceParticipantIds)}</strong>).
-        </p>
         <GameweekScoresTable
           gameweek={selectedGameweek}
           participants={seasonData.participants}
-          result={selectedResult}
+          result={selectedGameweekResult}
         />
       </section>
     {:else}
@@ -190,8 +175,13 @@
     {/if}
 
     <div class="summary-grid">
-      {#if selectedGameweekStats}
-        <GameweekStatsCard stats={selectedGameweekStats} />
+      {#if selectedGameweek && selectedGameweekStats && selectedGameweekResult}
+        <GameweekStatsCard
+          gameweek={selectedGameweek.gameweek}
+          participants={seasonData.participants}
+          result={selectedGameweekResult}
+          stats={selectedGameweekStats}
+        />
       {/if}
       <StandingsCard {leaderboard} participants={seasonData.participants} />
 

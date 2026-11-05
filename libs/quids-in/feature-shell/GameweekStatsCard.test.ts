@@ -3,10 +3,25 @@ import { describe, expect, it } from 'vitest';
 
 import GameweekStatsCard from './GameweekStatsCard.svelte';
 
+const cardProps = {
+  gameweek: 3,
+  participants: [
+    { id: 1, name: 'Alice', teamName: 'Aces High' },
+    { id: 2, name: 'Ben', teamName: 'Biscuit Boys' },
+  ],
+  result: {
+    highestScore: 70,
+    lowestScore: 33,
+    winners: [{ participantId: 1, winShare: 1 }],
+    lastPlaceParticipantIds: [2],
+  },
+};
+
 describe('GameweekStatsCard', () => {
   it('renders every labelled statistic with formatted signed difference', () => {
     render(GameweekStatsCard, {
       props: {
+        ...cardProps,
         stats: {
           available: true,
           highestScore: 70,
@@ -18,9 +33,12 @@ describe('GameweekStatsCard', () => {
       },
     });
 
-    expect(screen.getByRole('region', { name: 'Gameweek stats' })).toBeTruthy();
-    expect(screen.getByText('Highest score')).toBeTruthy();
-    expect(screen.getByText('Lowest score')).toBeTruthy();
+    const region = screen.getByRole('region', { name: 'Gameweek 3 stats' });
+
+    expect(region.querySelector('.winner-summary')?.textContent).toContain(
+      'Highest score: 70 (Alice).'
+    );
+    expect(region.querySelector('.lowest-score')?.textContent).toContain('Lowest score: 33 (Ben).');
     expect(screen.getByText('League average')).toBeTruthy();
     expect(screen.getByText('Spread')).toBeTruthy();
     expect(screen.getByText('Difference from season average')).toBeTruthy();
@@ -31,6 +49,7 @@ describe('GameweekStatsCard', () => {
   it('shows the FPL average and signed difference after the league average', () => {
     render(GameweekStatsCard, {
       props: {
+        ...cardProps,
         stats: {
           available: true,
           fplAverage: 59.8,
@@ -46,7 +65,7 @@ describe('GameweekStatsCard', () => {
 
     const terms = Array.from(document.querySelectorAll('dt')).map((term) => term.textContent);
 
-    expect(terms.slice(2, 5)).toEqual([
+    expect(terms.slice(0, 3)).toEqual([
       'League average',
       'FPL average',
       'Difference from FPL average',
@@ -58,6 +77,7 @@ describe('GameweekStatsCard', () => {
   it('hides the FPL rows when no FPL average is recorded', () => {
     render(GameweekStatsCard, {
       props: {
+        ...cardProps,
         stats: {
           available: true,
           highestScore: 70,
@@ -71,12 +91,13 @@ describe('GameweekStatsCard', () => {
 
     expect(screen.queryByText('FPL average')).toBeNull();
     expect(screen.queryByText('Difference from FPL average')).toBeNull();
-    expect(document.querySelectorAll('dt')).toHaveLength(5);
+    expect(document.querySelectorAll('dt')).toHaveLength(3);
   });
 
   it('hides the season comparison when no completed baseline is available', () => {
     render(GameweekStatsCard, {
       props: {
+        ...cardProps,
         stats: {
           available: true,
           highestScore: 70,
@@ -91,10 +112,15 @@ describe('GameweekStatsCard', () => {
   });
 
   it('renders an explicit message when statistics are unavailable', () => {
-    render(GameweekStatsCard, { props: { stats: { available: false } } });
+    render(GameweekStatsCard, {
+      props: { ...cardProps, stats: { available: false } },
+    });
 
     expect(
-      screen.getByText('Gameweek statistics are unavailable because no usable scores were recorded.')
+      screen.getByText(
+        'Gameweek statistics are unavailable because no usable scores were recorded.'
+      )
     ).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Gameweek 3 stats' })).toBeTruthy();
   });
 });
