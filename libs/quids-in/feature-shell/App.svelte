@@ -150,6 +150,8 @@
               <h1 id="round-heading">Gameweek {selectedGameweek.gameweek}</h1>
               {#if isCurrentGameweekInProgress(selectedGameweek, latestGameweek)}
                 <span class="gameweek-status-badge">In progress</span>
+              {:else if selectedGameweek.gameweek === latestGameweek.gameweek && selectedGameweek.ended === true}
+                <span class="gameweek-status-badge gameweek-status-badge-completed">Completed</span>
               {/if}
             </div>
           </div>

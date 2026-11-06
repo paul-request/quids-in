@@ -112,6 +112,7 @@ describe('App', () => {
     ['live', true, false, true],
     ['finished but unchecked', true, false, true],
     ['finished and checked', true, true, false],
+    ['completed with unknown start', undefined, true, false],
     ['unknown start', undefined, false, false],
     ['unknown completion', true, undefined, false],
     ['legacy snapshot', undefined, undefined, false],
@@ -124,6 +125,7 @@ describe('App', () => {
     renderApp(seasonData);
 
     expect(screen.queryByText('In progress') !== null).toBe(visible);
+    expect(screen.queryByText('Completed') !== null).toBe(ended === true);
     expect(screen.getByRole('heading', { name: 'Gameweek 2' })).toBeTruthy();
     expect(screen.getByRole('combobox', { name: 'Choose Gameweek' })).toBeTruthy();
     expect(screen.getByRole('option', { name: 'Gameweek 2 (current)' })).toBeTruthy();
@@ -157,7 +159,28 @@ describe('App', () => {
     expect(screen.getByText('In progress')).toBeTruthy();
   });
 
-  it('removes the badge when refreshed snapshot props mark the round complete', async () => {
+  it('shows the completed badge beside the current heading only and updates it on selection', async () => {
+    renderApp(statsSeason);
+
+    const badge = screen.getByText('Completed');
+
+    expect(badge.parentElement?.querySelector('h1')?.textContent).toBe('Gameweek 2');
+    expect(badge.tagName).toBe('SPAN');
+    expect(badge.hasAttribute('tabindex')).toBe(false);
+    expect(screen.getAllByText('Completed')).toHaveLength(1);
+    expect(screen.queryByText('In progress')).toBeNull();
+
+    await fireEvent.change(screen.getByRole('combobox'), { target: { value: '1' } });
+
+    expect(screen.queryByText('Completed')).toBeNull();
+    expect(screen.queryByText('In progress')).toBeNull();
+
+    await fireEvent.change(screen.getByRole('combobox'), { target: { value: '2' } });
+
+    expect(screen.getByText('Completed')).toBeTruthy();
+  });
+
+  it('replaces the in-progress badge when refreshed snapshot props mark the round complete', async () => {
     const liveSeason: Season = {
       ...statsSeason,
       gameweeks: statsSeason.gameweeks.map((gameweek) => ({
@@ -178,6 +201,7 @@ describe('App', () => {
     });
 
     expect(screen.queryByText('In progress')).toBeNull();
+    expect(screen.getByText('Completed')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Gameweek 2' })).toBeTruthy();
   });
 
@@ -185,6 +209,7 @@ describe('App', () => {
     renderApp(emptySeason);
 
     expect(screen.queryByText('In progress')).toBeNull();
+    expect(screen.queryByText('Completed')).toBeNull();
     expect(screen.getByRole('heading', { name: 'No Gameweek results yet' })).toBeTruthy();
   });
 
