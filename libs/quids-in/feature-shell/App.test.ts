@@ -69,6 +69,44 @@ describe('App', () => {
     window.location.hash = '';
   });
 
+  it('shows chip usage on the player route even before the first score is completed', () => {
+    window.location.hash = '#/players/1';
+    renderApp({
+      ...statsSeason,
+      gameweeks: [{
+        ended: false,
+        gameweek: 1,
+        scores: {
+          '1': { points: 20, transfers: 0, transferCost: 0, chip: 'bboost' },
+          '2': { points: 40, transfers: 0, transferCost: 0, chip: 'wildcard' },
+        },
+      }],
+    });
+
+    expect(screen.getByRole('heading', { name: 'No recorded scores for Alice' })).toBeTruthy();
+    const card = screen.getByRole('region', { name: 'Chips used' });
+    expect(within(card).getAllByRole('listitem')).toHaveLength(8);
+    expect(within(card).getByText('Used GW1').closest('li')?.textContent).toContain('Bench Boost');
+    expect(within(card).getAllByText('Not used')).toHaveLength(7);
+  });
+
+  it('shows chips from both halves of the season on a completed player route', () => {
+    window.location.hash = '#/players/1';
+    renderApp({
+      ...statsSeason,
+      gameweeks: [
+        { ended: true, gameweek: 19, scores: { '1': { points: 20, transfers: 0, transferCost: 0, chip: 'freehit' } } },
+        { ended: true, gameweek: 20, scores: { '1': { points: 40, transfers: 0, transferCost: 0, chip: '3xc' } } },
+      ],
+    });
+
+    expect(screen.getByRole('heading', { name: 'Alice' })).toBeTruthy();
+    const card = screen.getByRole('region', { name: 'Chips used' });
+    expect(within(card).getByText('Used GW19').closest('li')?.textContent).toContain('Free Hit');
+    expect(within(card).getByText('Used GW20').closest('li')?.textContent).toContain('Triple Captain');
+    expect(within(card).getAllByText('Not used')).toHaveLength(6);
+  });
+
   it.each([
     ['before the deadline', false, false, false],
     ['live', true, false, true],

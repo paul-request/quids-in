@@ -5,6 +5,7 @@
     GameweekResult,
     Participant,
   } from '../utility/results.interfaces';
+  import { formatChipName } from '../utility/formatting';
   import PlayerTeamLink from './PlayerTeamLink.svelte';
 
   let {
@@ -35,17 +36,6 @@
     };
 
     return chipLabels[chip] ?? chip.toUpperCase();
-  }
-
-  function getChipDescription(chip: string): string {
-    const chipNames: Record<string, string> = {
-      '3xc': 'Triple Captain',
-      bboost: 'Bench Boost',
-      freehit: 'Free Hit',
-      wildcard: 'Wildcard',
-    };
-
-    return chipNames[chip] ?? chip;
   }
 
   function isWinner(participantId: number): boolean {
@@ -107,7 +97,7 @@
             {#if gameweekScore?.chip}
               <span
                 class="chip-badge"
-                aria-label={`Chip: ${getChipDescription(gameweekScore.chip)}`}
+                aria-label={`Chip: ${formatChipName(gameweekScore.chip)}`}
               >
                 {getChipLabel(gameweekScore.chip)}
               </span>
