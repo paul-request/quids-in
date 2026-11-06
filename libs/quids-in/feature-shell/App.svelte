@@ -11,6 +11,7 @@
     calculateGameweekResult,
     calculateAverageWeeklyPosition,
     calculatePlayerStats,
+    calculatePlayerChips,
     calculateSeasonLeaderboard,
     calculateSeasonBalances,
     calculateTeamValue,
@@ -96,6 +97,11 @@
       ? undefined
       : seasonBalances.find((row) => row.participantId === playerId),
   );
+  let selectedPlayerChips = $derived(
+    playerId === undefined
+      ? []
+      : calculatePlayerChips(seasonData.participants, seasonData.gameweeks, playerId),
+  );
   let selectedPlayerTeamValue = $derived(
     playerId === undefined
       ? undefined
@@ -118,6 +124,7 @@
     participant={selectedPlayer}
     balance={selectedPlayerBalance}
     teamValue={selectedPlayerTeamValue}
+    chips={selectedPlayerChips}
   />
 {:else if currentHash === '#/cups'}
   <CupsPage

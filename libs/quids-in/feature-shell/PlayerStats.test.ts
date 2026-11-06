@@ -2,11 +2,15 @@ import { render, screen } from '@testing-library/svelte';
 import { describe, expect, it } from 'vitest';
 
 import PlayerStats from './PlayerStats.svelte';
+import { calculatePlayerChips } from '../utility/results';
+
+const chips = calculatePlayerChips([{ id: 1, name: 'Alice', teamName: 'Aces High' }], [], 1);
 
 describe('PlayerStats', () => {
   it('renders score, position, and profit/loss statistics', () => {
     render(PlayerStats, {
       props: {
+        chips,
         participant: { id: 1, name: 'Alice', teamName: 'Aces High' },
         balance: undefined,
         teamValue: { available: true, teamValueTenthsOfMillion: 1015 },
@@ -41,6 +45,7 @@ describe('PlayerStats', () => {
   it('renders an explicit unavailable label when team value has not been recorded', () => {
     render(PlayerStats, {
       props: {
+        chips,
         participant: { id: 1, name: 'Alice', teamName: 'Aces High' },
         balance: undefined,
         teamValue: { available: false },
@@ -67,6 +72,7 @@ describe('PlayerStats', () => {
   it('renders an explicit no-recorded-score state for known players', () => {
     render(PlayerStats, {
       props: {
+        chips,
         participant: { id: 1, name: 'Alice', teamName: 'Aces High' },
         balance: {
           participantId: 1,
@@ -83,5 +89,7 @@ describe('PlayerStats', () => {
     expect(screen.getByText('-£38.00')).toBeTruthy();
     expect(screen.getByText('Team value')).toBeTruthy();
     expect(screen.getByText('Not available')).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Chips used' })).toBeTruthy();
+    expect(screen.getAllByText('Not used')).toHaveLength(8);
   });
 });
