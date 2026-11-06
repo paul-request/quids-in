@@ -1,5 +1,16 @@
 import type { Participant } from './results.interfaces';
 
+export function formatChipName(chip: string): string {
+  const chipNames: Record<string, string> = {
+    '3xc': 'Triple Captain',
+    bboost: 'Bench Boost',
+    freehit: 'Free Hit',
+    wildcard: 'Wildcard',
+  };
+
+  return chipNames[chip] ?? chip;
+}
+
 /**
  * Formats a plain number (score, position, average) using British locale
  * grouping and at most two decimal places, dropping trailing zeroes.

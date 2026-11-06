@@ -8,6 +8,7 @@ import type {
   SeasonLeaderboard,
   GameweekStats,
   PlayerStats,
+  PlayerChip,
   TeamValue,
 } from './results.interfaces';
 import type { CupPrize } from './cups.interfaces';
@@ -442,6 +443,41 @@ export function calculatePlayerStats(
     totalTransfers,
     totalPoints,
   };
+}
+
+export function calculatePlayerChips(
+  participants: Array<Participant>,
+  gameweeks: Array<Gameweek>,
+  participantId: number
+): Array<PlayerChip> {
+  validateCollection(participants, 'participants');
+  validateCollection(gameweeks, 'Gameweeks');
+  const participantIndex = createParticipantIndex(participants);
+  validateGameweekOrder(gameweeks);
+
+  for (const gameweek of gameweeks) {
+    validateGameweek(gameweek, participantIndex);
+  }
+
+  if (!participantIndex.ids.has(participantId)) {
+    return [];
+  }
+
+  return ([1, 2] as const).flatMap((half) =>
+    ['wildcard', 'freehit', '3xc', 'bboost'].map((name) => {
+      const usedGameweek = gameweeks.find(
+        ({ gameweek, scores }) =>
+          (half === 1 ? gameweek <= 19 : gameweek >= 20) &&
+          scores[String(participantId)]?.chip === name
+      );
+
+      return {
+        name,
+        half,
+        ...(usedGameweek ? { gameweek: usedGameweek.gameweek } : {}),
+      };
+    })
+  );
 }
 
 export function calculateTeamValue(

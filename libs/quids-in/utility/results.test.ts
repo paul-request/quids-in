@@ -5,6 +5,7 @@ import {
   calculateAverageWeeklyPosition,
   calculateGameweekStats,
   calculatePlayerStats,
+  calculatePlayerChips,
   calculateSeasonBalances,
   calculateBiggestSlugs,
   calculateSeasonLeaderboard,
@@ -863,6 +864,62 @@ describe('calculatePlayerStats', () => {
 
     expect(result?.seasonBalancePennies).toBe(-3600);
     expect(result?.currentBalancePennies).toBe(100);
+  });
+});
+
+describe('calculatePlayerChips', () => {
+  it('returns all four chips in each half as unused when there is no history', () => {
+    expect(calculatePlayerChips(participants, [], 1)).toEqual([
+      { name: 'wildcard', half: 1 },
+      { name: 'freehit', half: 1 },
+      { name: '3xc', half: 1 },
+      { name: 'bboost', half: 1 },
+      { name: 'wildcard', half: 2 },
+      { name: 'freehit', half: 2 },
+      { name: '3xc', half: 2 },
+      { name: 'bboost', half: 2 },
+    ]);
+  });
+
+  it('tracks both sets independently across GW19 and GW20, including live usage', () => {
+    const gameweeks: Array<Gameweek> = [
+      { ended: true, gameweek: 1, scores: { '1': { ...createScores({ '1': 50 })['1'], chip: '3xc' } } },
+      { ended: true, gameweek: 19, scores: { '1': { ...createScores({ '1': 50 })['1'], chip: 'wildcard' } } },
+      { ended: false, gameweek: 20, scores: { '1': { ...createScores({ '1': 50 })['1'], chip: 'wildcard' } } },
+      { gameweek: 38, scores: { '1': { ...createScores({ '1': 50 })['1'], chip: 'bboost' } } },
+    ];
+
+    expect(calculatePlayerChips(participants, gameweeks, 1)).toEqual([
+      { name: 'wildcard', half: 1, gameweek: 19 },
+      { name: 'freehit', half: 1 },
+      { name: '3xc', half: 1, gameweek: 1 },
+      { name: 'bboost', half: 1 },
+      { name: 'wildcard', half: 2, gameweek: 20 },
+      { name: 'freehit', half: 2 },
+      { name: '3xc', half: 2 },
+      { name: 'bboost', half: 2, gameweek: 38 },
+    ]);
+  });
+
+  it('does not use another player history or treat missing scores as chip usage', () => {
+    const chips = calculatePlayerChips(participants, [
+      { gameweek: 1, scores: { '2': { ...createScores({ '2': 50 })['2'], chip: 'freehit' } } },
+      { gameweek: 2, scores: createScores({ '1': 40 }) },
+    ], 1);
+
+    expect(chips).toHaveLength(8);
+    expect(chips.every((chip) => chip.gameweek === undefined)).toBe(true);
+    expect(calculatePlayerChips(participants, [], 99)).toEqual([]);
+  });
+
+  it('rejects invalid scores and out-of-order history', () => {
+    expect(() => calculatePlayerChips(participants, [
+      { gameweek: 1, scores: { '1': { points: NaN, transfers: 0, transferCost: 0 } } },
+    ], 1)).toThrow('Invalid score');
+    expect(() => calculatePlayerChips(participants, [
+      { gameweek: 20, scores: createScores({ '1': 50 }) },
+      { gameweek: 19, scores: createScores({ '1': 50 }) },
+    ], 1)).toThrow();
   });
 });
 

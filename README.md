@@ -169,6 +169,16 @@ one has usable scores. Player Team value continues to use the latest
 available snapshot value. See the
 [Phase 18 requirements](./specs/2026-10-11-completed-gameweek-summaries/requirements.md).
 
+### Player chips used
+
+Player stats shows all eight chips as badges, grouped into first-half
+(GW1-19) and second-half (GW20-38) sets. Used chips are green and show the
+Gameweek; unused chips have a blue outline and a screen-reader-only "Not used"
+label. Badge text is centred horizontally and vertically. Usage
+comes from the imported chip history, including in-progress Gameweeks,
+because a played chip does not need a completed score to count as used.
+Unused first-half chips do not carry over to the second set.
+
 ### Knockout cups (Phase 12)
 
 See [specs/2026-09-29-knockout-cups](./specs/2026-09-29-knockout-cups/requirements.md).

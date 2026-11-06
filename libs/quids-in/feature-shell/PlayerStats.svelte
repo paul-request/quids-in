@@ -1,6 +1,7 @@
 <script lang="ts">
   import type {
     Participant,
+    PlayerChip,
     PlayerStats as PlayerStatsResult,
     SeasonBalanceRow,
     TeamValue,
@@ -8,17 +9,20 @@
   import { formatBalance, formatNumber, formatTeamValue } from '../utility/formatting';
 
   import Header from './Header.svelte';
+  import ChipsUsedCard from './ChipsUsedCard.svelte';
 
   let {
     stats,
     participant,
     balance,
     teamValue,
+    chips,
   }: {
     stats: PlayerStatsResult | undefined;
     participant: Participant | undefined;
     balance: SeasonBalanceRow | undefined;
     teamValue: TeamValue | undefined;
+    chips: Array<PlayerChip>;
   } = $props();
 
   function formatGameweeks(gameweeks: Array<number>): string {
@@ -52,6 +56,7 @@
         <div><dt>Season profit/loss</dt><dd>{formatBalance(stats.seasonBalancePennies)}</dd></div>
         <div><dt>Current profit/loss</dt><dd>{formatBalance(stats.currentBalancePennies)}</dd></div>
       </dl>
+      <ChipsUsedCard {chips} />
     </section>
   {:else if participant}
     <section class="empty-state" aria-labelledby="no-score-heading">
@@ -69,6 +74,7 @@
           <div><dt>Current profit/loss</dt><dd>{formatBalance(balance.weeklyBalancePennies)}</dd></div>
         </dl>
       {/if}
+      <ChipsUsedCard {chips} />
       <a href="#/">Back to dashboard</a>
     </section>
   {:else}

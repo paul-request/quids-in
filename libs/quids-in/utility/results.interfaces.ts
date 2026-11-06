@@ -124,6 +124,12 @@ export interface PlayerStats {
   totalPoints: number;
 }
 
+export interface PlayerChip {
+  name: string;
+  half: 1 | 2;
+  gameweek?: number;
+}
+
 export interface AvailableTeamValue {
   available: true;
   teamValueTenthsOfMillion: number;
