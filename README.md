@@ -56,6 +56,19 @@ data at build time and bundles it into the static site. The checked-in
 snapshot is a development and test baseline (and an emergency fallback), not
 what the live site normally serves.
 
+### Home-screen icons
+
+The site provides an Apple touch icon for iPhone/iPad and a web manifest with
+192px and 512px icons for Android. These PNGs in `public/` use the existing
+`public/logo.png` artwork, centred with padding on the site's dark background
+(`#050816`). Update all three icons if the logo changes.
+
+Icon links use Vite's base URL, and manifest URLs are relative, so they also
+work under the GitHub Pages `/quids-in/` path. Home-screen shortcuts retain
+normal browser navigation; no offline mode is provided. After deploying an
+icon change, remove any old home-screen shortcut and add the site again to
+refresh the device's cached icon.
+
 ## Import season data
 
 Run the importer to fetch every FPL league standings page and every member's
@@ -138,13 +151,18 @@ shows it with the league's signed variance from it. FPL does not document
 whether this average deducts transfer costs, so the comparison is
 approximate.
 
-### In-progress Gameweek badge (Phase 15)
+### Gameweek status badges
 
 The latest recorded Gameweek shows an **In progress** badge beside its
 heading when the imported snapshot confirms that its FPL deadline has
 passed and it has not yet been marked both `finished` and `data_checked`.
 It remains visible between matches and while FPL checks the final results.
 Selecting a previous Gameweek hides the badge.
+
+Once the latest recorded Gameweek is confirmed finished and checked
+(`ended: true`), the current round card shows a compact green **Completed**
+badge instead. This does not require start metadata. Previous rounds do not
+show either status badge, and unknown completion is never treated as complete.
 
 The importer records optional `gameweeks[].started` by comparing FPL's
 `deadline_time` with the snapshot's `source.retrievedAt`. Completion is
