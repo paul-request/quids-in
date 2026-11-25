@@ -23,7 +23,7 @@ const SAVES_PER_POINT = 3;
 // defender look like a forward.
 const XG_PRIOR_PER_90: Record<PlannerPosition, number> = { 1: 0, 2: 0.06, 3: 0.17, 4: 0.46 };
 const XA_PRIOR_PER_90: Record<PlannerPosition, number> = { 1: 0, 2: 0.056, 3: 0.133, 4: 0.06 };
-const ATTACKING_PRIOR_MINUTES = 900;
+const ATTACKING_PRIOR_MINUTES = 300;
 // Defenders earn 2 points for 10+ defensive contributions and midfielders for
 // 12+. About 29% of defender and 14% of midfielder appearances reach it, used
 // as the prior for each player's own rate.
