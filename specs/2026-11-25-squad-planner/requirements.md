@@ -24,7 +24,7 @@ In scope:
 
 - Route `#/players/:id/planner`, linked from the player stats page.
 - Table of the participant's current 15 (Starting XI, then Bench), columns
-  for the next 5 unfinished Gameweeks plus a Sum column.
+  for the next 5 unfinished Gameweeks plus a Total column.
 - Each cell: opponent short name, H/A, projected points, background colour
   by fixture difficulty (FDR 1–5, with accessible text, not colour alone).
 - Footer rows: XI total (captain doubled), and best captain per Gameweek

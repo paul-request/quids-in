@@ -93,7 +93,7 @@
               {#each table.gameweeks as gameweek (gameweek)}
                 <th scope="col">GW{gameweek}</th>
               {/each}
-              <th scope="col">Sum</th>
+              <th scope="col">Total</th>
             </tr>
           </thead>
           <tbody>
