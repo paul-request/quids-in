@@ -380,7 +380,12 @@ export function suggestTransfers(
       .filter((row) => row.position === position)
       .sort((a, b) => a.sum - b.sum)[0];
     const candidates = rows
-      .filter((row) => row.position === position && !owned.has(row.playerId))
+      .filter(
+        (row) =>
+          row.position === position &&
+          !owned.has(row.playerId) &&
+          (replace === undefined || row.sum > replace.sum)
+      )
       .sort((a, b) => b.sum - a.sum)
       .slice(0, perPosition);
 

@@ -263,5 +263,8 @@ describe('suggestTransfers', () => {
     expect(forwards?.candidates[0]?.playerId).toBe(4);
     expect(forwards?.candidates.map((row) => row.playerId)).not.toContain(2);
     expect(forwards?.replace?.playerId).toBe(3);
+    forwards?.candidates.forEach((row) => {
+      expect(row.sum).toBeGreaterThan(forwards.replace?.sum ?? 0);
+    });
   });
 });

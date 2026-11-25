@@ -140,9 +140,9 @@
     <section class="dashboard-section planner-transfers" aria-labelledby="transfers-heading">
       <h2 id="transfers-heading">Transfer suggestions</h2>
       <p class="planner-note">
-        Highest projected players over the next {table.gameweeks.length} Gameweeks who are not in
-        the squad, compared with the lowest projected squad player in the same position. Price is
-        not considered.
+        Up to three players per position, over the next {table.gameweeks.length} Gameweeks, who are
+        not in the squad and are projected to score more than the lowest projected squad player in
+        the same position. Price is not considered.
       </p>
       <div class="planner-suggestions">
         {#each suggestions as suggestion (suggestion.position)}
@@ -152,6 +152,9 @@
               <p class="planner-note">
                 Lowest in squad: {suggestion.replace.name} ({points(suggestion.replace.sum)})
               </p>
+            {/if}
+            {#if suggestion.candidates.length === 0}
+              <p class="planner-note">No better options available.</p>
             {/if}
             <ol>
               {#each suggestion.candidates as candidate (candidate.playerId)}
