@@ -29,11 +29,20 @@ export interface PlannerPlayer {
   minutes: number;
   name: string;
   position: PlannerPosition;
+  /** The player's latest team matches, oldest first. */
+  recent?: Array<PlannerMatch>;
   status: string;
   team: number;
   xAPer90: number;
   xGCPer90: number;
   xGPer90: number;
+}
+
+export interface PlannerMatch {
+  minutes: number;
+  xA: number;
+  xG: number;
+  xGC: number;
 }
 
 export interface PlannerFixture {

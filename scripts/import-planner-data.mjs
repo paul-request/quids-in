@@ -69,14 +69,17 @@ export async function importPlannerData({
     Object.values(squads).flatMap((picks) => picks.map((pick) => pick.playerId))
   );
 
+  const relevantElements = bootstrap.elements.filter(
+    (element) => element.minutes > 0 || ownedIds.has(element.id)
+  );
+  const recentById = await fetchRecentMatches(fetchFn, relevantElements);
+
   return {
     finishedGameweeks,
     fixtures: fixtures.filter((fixture) => gameweeks.includes(fixture.event)).map(createFixture),
     gameweeks,
     generatedAt,
-    players: bootstrap.elements
-      .filter((element) => element.minutes > 0 || ownedIds.has(element.id))
-      .map(createPlayer),
+    players: relevantElements.map((element) => createPlayer(element, recentById.get(element.id))),
     season,
     squads,
     teams: bootstrap.teams.map(createTeam),
@@ -97,7 +100,42 @@ function readPer90(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
-function createPlayer(element) {
+const RECENT_MATCHES = 6;
+const SUMMARY_BATCH_SIZE = 10;
+
+async function fetchRecentMatches(fetchFn, elements) {
+  const recentById = new Map();
+
+  for (let start = 0; start < elements.length; start += SUMMARY_BATCH_SIZE) {
+    await Promise.all(
+      elements.slice(start, start + SUMMARY_BATCH_SIZE).map(async (element) => {
+        const summary = await fetchJson(
+          fetchFn,
+          `/element-summary/${element.id}/`,
+          `history for player ${element.id}`
+        );
+
+        if (!summary || !Array.isArray(summary.history)) {
+          throw new Error(`Malformed history for player ${element.id}`);
+        }
+
+        recentById.set(
+          element.id,
+          summary.history.slice(-RECENT_MATCHES).map((match) => ({
+            minutes: requireNumber(match.minutes, 'match minutes'),
+            xA: readPer90(match.expected_assists),
+            xG: readPer90(match.expected_goals),
+            xGC: readPer90(match.expected_goals_conceded),
+          }))
+        );
+      })
+    );
+  }
+
+  return recentById;
+}
+
+function createPlayer(element, recent) {
   const position = requireNumber(element.element_type, 'player position');
 
   if (![1, 2, 3, 4].includes(position)) {
@@ -111,6 +149,7 @@ function createPlayer(element) {
     minutes: requireNumber(element.minutes, 'player minutes'),
     name: String(element.web_name),
     position,
+    ...(recent && recent.length > 0 ? { recent } : {}),
     status: String(element.status),
     team: requireNumber(element.team, 'player team'),
     xAPer90: readPer90(element.expected_assists_per_90),

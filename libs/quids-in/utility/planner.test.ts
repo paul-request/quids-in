@@ -83,6 +83,44 @@ describe('projectFixture', () => {
     expect(cold).toBeGreaterThan(0);
   });
 
+  it('lowers projections for recently benched players and raises them for recent hot streaks', () => {
+    const match = (minutes: number, xG: number) => ({ minutes, xA: 0.2, xG, xGC: 1 });
+    const base = projectFixture(
+      player({ id: 1, recent: Array.from({ length: 6 }, () => match(90, 0.5)) }),
+      opponent,
+      true,
+      10,
+      averages
+    );
+    const benched = projectFixture(
+      player({
+        id: 1,
+        recent: [
+          match(90, 0.5),
+          match(90, 0.5),
+          match(0, 0),
+          match(0, 0),
+          match(0, 0),
+          match(0, 0),
+        ],
+      }),
+      opponent,
+      true,
+      10,
+      averages
+    );
+    const hot = projectFixture(
+      player({ id: 1, recent: Array.from({ length: 6 }, () => match(90, 1.2)) }),
+      opponent,
+      true,
+      10,
+      averages
+    );
+
+    expect(benched).toBeLessThan(base);
+    expect(hot).toBeGreaterThan(base);
+  });
+
   it('projects nothing for players with no minutes', () => {
     expect(projectFixture(player({ id: 1, minutes: 0 }), opponent, true, 10, averages)).toBe(0);
   });

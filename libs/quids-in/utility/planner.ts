@@ -1,5 +1,6 @@
 import type {
   PlannerData,
+  PlannerMatch,
   PlannerPlayer,
   PlannerPosition,
   PlannerRow,
@@ -17,6 +18,10 @@ const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.3, 2: 0.35, 3: 0.35
 const ASSIST_POINTS = 3;
 const DEFAULT_XGC_PER_90 = 1.3;
 const FORM_WEIGHT = 0.18;
+const RECENT_DECAY = 0.85;
+const RECENT_MINUTES_WEIGHT = 0.7;
+const RECENT_RATE_WEIGHT = 0.5;
+const MIN_RECENT_MINUTES_FOR_RATES = 180;
 const FORM_RATIO_MAX = 1.6;
 const POSITION_ORDER: Array<PlannerPosition> = [1, 2, 3, 4];
 
@@ -46,6 +51,61 @@ function getAvailability(player: PlannerPlayer): number {
   return (player.chanceOfPlaying ?? 100) / 100;
 }
 
+interface Profile {
+  minutes: number;
+  xAPer90: number;
+  xGCPer90: number;
+  xGPer90: number;
+}
+
+/**
+ * Expected minutes and per-90 rates, blending the season with the player's
+ * most recent matches (most recent weighted highest) so rotation, benching and
+ * hot or cold spells feed through.
+ */
+function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
+  const seasonMinutes =
+    finishedGameweeks > 0 ? 90 * Math.min(1, player.minutes / (finishedGameweeks * 90)) : 0;
+  const recent = player.recent ?? [];
+
+  if (recent.length === 0) {
+    return {
+      minutes: seasonMinutes,
+      xAPer90: player.xAPer90,
+      xGCPer90: player.xGCPer90,
+      xGPer90: player.xGPer90,
+    };
+  }
+
+  const weights = recent.map((_, index) => RECENT_DECAY ** (recent.length - 1 - index));
+  const weighted = (pick: (match: PlannerMatch) => number): number =>
+    recent.reduce((total, match, index) => total + pick(match) * (weights[index] ?? 0), 0);
+  const totalWeight = weights.reduce((total, weight) => total + weight, 0);
+  const weightedMinutes = weighted((match) => match.minutes);
+  const recentMinutes = weightedMinutes / totalWeight;
+  const blendRate = (season: number, recentTotal: number): number =>
+    weightedMinutes >= (MIN_RECENT_MINUTES_FOR_RATES * totalWeight) / recent.length
+      ? (1 - RECENT_RATE_WEIGHT) * season +
+        (RECENT_RATE_WEIGHT * recentTotal * 90) / weightedMinutes
+      : season;
+
+  return {
+    minutes: RECENT_MINUTES_WEIGHT * recentMinutes + (1 - RECENT_MINUTES_WEIGHT) * seasonMinutes,
+    xAPer90: blendRate(
+      player.xAPer90,
+      weighted((match) => match.xA)
+    ),
+    xGCPer90: blendRate(
+      player.xGCPer90,
+      weighted((match) => match.xGC)
+    ),
+    xGPer90: blendRate(
+      player.xGPer90,
+      weighted((match) => match.xG)
+    ),
+  };
+}
+
 /**
  * Expected points for one player in one fixture, built from xG, xA and xGC per
  * 90, the share of available minutes played, availability, and the
@@ -58,9 +118,8 @@ export function projectFixture(
   finishedGameweeks: number,
   averages: Averages
 ): number {
-  const minutesShare =
-    finishedGameweeks > 0 ? Math.min(1, player.minutes / (finishedGameweeks * 90)) : 0;
-  const expectedMinutes = 90 * minutesShare * getAvailability(player);
+  const profile = getProfile(player, finishedGameweeks);
+  const expectedMinutes = profile.minutes * getAvailability(player);
 
   if (expectedMinutes <= 0) {
     return 0;
@@ -72,10 +131,10 @@ export function projectFixture(
 
   const expected = (attackingFactor: number, concedingFactor: number): number => {
     const appearance = 2 * Math.min(1, expectedMinutes / 60);
-    const goals = player.xGPer90 * fractionOfGame * attackingFactor * GOAL_POINTS[player.position];
-    const assists = player.xAPer90 * fractionOfGame * attackingFactor * ASSIST_POINTS;
+    const goals = profile.xGPer90 * fractionOfGame * attackingFactor * GOAL_POINTS[player.position];
+    const assists = profile.xAPer90 * fractionOfGame * attackingFactor * ASSIST_POINTS;
     const expectedConceded =
-      (player.xGCPer90 > 0 ? player.xGCPer90 : DEFAULT_XGC_PER_90) * concedingFactor;
+      (profile.xGCPer90 > 0 ? profile.xGCPer90 : DEFAULT_XGC_PER_90) * concedingFactor;
     const cleanSheet =
       Math.exp(-expectedConceded) *
       Math.min(1, expectedMinutes / 60) *

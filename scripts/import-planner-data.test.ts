@@ -54,6 +54,17 @@ function fetchFn() {
   return vi.fn(async (url: string) => {
     if (url.includes('/bootstrap-static/')) return jsonResponse(bootstrap);
     if (url.includes('/fixtures/')) return jsonResponse(fixtures);
+    if (url.includes('/element-summary/')) {
+      return jsonResponse({
+        history: Array.from({ length: 8 }, (_, index) => ({
+          expected_assists: '0.10',
+          expected_goals: '0.30',
+          expected_goals_conceded: '1.00',
+          minutes: index,
+        })),
+      });
+    }
+
     if (url.includes('/entry/10/event/2/picks/')) {
       return jsonResponse({ picks: [{ element: 3, position: 1 }] });
     }
@@ -76,6 +87,8 @@ describe('importPlannerData', () => {
     expect(data.fixtures).toHaveLength(1);
     expect(data.squads).toEqual({ '10': [{ playerId: 3, slot: 1 }] });
     expect(data.players.map((player: { id: number }) => player.id)).toEqual([1, 3]);
+    expect(data.players[0].recent).toHaveLength(6);
+    expect(data.players[0].recent[5]).toEqual({ minutes: 7, xA: 0.1, xG: 0.3, xGC: 1 });
     expect(data.players[0]).toMatchObject({ form: 0, xGPer90: 0.5, xAPer90: 0.2, xGCPer90: 1.1 });
   });
 

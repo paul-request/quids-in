@@ -221,8 +221,10 @@ overwrite an existing draw unless given `--force`).
 See [specs/2026-11-25-squad-planner](./specs/2026-11-25-squad-planner/requirements.md).
 The planner is shown at `#/players/<entry id>/planner`, linked from player
 stats. `npm run import:planner-data` writes `data/planner-2026-27.json` (raw
-player xG/xA/xGC per 90, minutes, availability, team strengths, fixtures and
-each participant's latest squad). Projected points are computed in the browser
+player xG/xA/xGC per 90, minutes, availability, each player's last six
+matches from `/element-summary/`, team strengths, fixtures and each
+participant's latest squad). Expected minutes and per-90 rates blend the
+season with recent matches, weighted towards the latest. Projected points are computed in the browser
 by `libs/quids-in/utility/planner.ts`. Every deployment refreshes the file; if
 that import fails, the deployment uses the committed file and the page shows
 when it was generated.
