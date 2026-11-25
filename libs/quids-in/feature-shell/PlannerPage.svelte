@@ -99,6 +99,9 @@
           <tbody>
             <tr class="planner-section"><th colspan={table.gameweeks.length + 2} scope="colgroup">Starting XI</th></tr>
             {@render playerRows(table.starters)}
+            <tr class="planner-spacer" aria-hidden="true">
+              <td colspan={table.gameweeks.length + 2}></td>
+            </tr>
             <tr class="planner-total">
               <th scope="row">XI total <span class="planner-player__position">Captain doubled</span></th>
               {#each table.xiTotals as total, index (index)}
