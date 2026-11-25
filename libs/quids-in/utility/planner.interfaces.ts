@@ -76,6 +76,8 @@ export interface BestCaptain {
   gameweek: number;
   name?: string;
   points: number;
+  /** The second-highest projected starter, as an alternative captain. */
+  vice?: { name: string; points: number };
 }
 
 export interface PlannerTable {

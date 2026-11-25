@@ -1025,3 +1025,11 @@ tbody tr:last-child td {
 .player-stats__heading .header-button {
   margin-left: auto;
 }
+
+.planner-vice {
+  display: block;
+  margin-top: 0.25rem;
+  color: #c8d4ff;
+  font-size: 0.8125rem;
+  font-weight: 400;
+}

@@ -179,17 +179,13 @@ export function buildPlannerTable(
   const bench = rowsFor(orderedPicks.filter((pick) => pick.slot > 11));
 
   const bestCaptains = data.gameweeks.map((gameweek, index) => {
-    let best: { name?: string; points: number } = { points: 0 };
+    const ranked = starters
+      .map((row) => ({ name: row.name, points: row.cells[index]?.points ?? 0 }))
+      .filter((candidate) => candidate.points > 0)
+      .sort((a, b) => b.points - a.points);
+    const [best, vice] = ranked;
 
-    for (const row of starters) {
-      const points = row.cells[index]?.points ?? 0;
-
-      if (points > best.points) {
-        best = { name: row.name, points };
-      }
-    }
-
-    return { gameweek, ...best };
+    return { gameweek, points: best?.points ?? 0, name: best?.name, vice };
   });
   const xiTotals = data.gameweeks.map(
     (_, index) =>

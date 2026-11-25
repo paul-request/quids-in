@@ -152,6 +152,7 @@ describe('buildPlannerTable', () => {
     expect(table?.xiTotals[0]).toBeCloseTo(
       (table?.starters[0]?.cells[0]?.points ?? 0) + 2 * (forward?.cells[0]?.points ?? 0)
     );
+    expect(table?.bestCaptains[0]?.vice).toMatchObject({ name: 'P1' });
     expect(table?.bestCaptains[2]?.name).toBeUndefined();
     expect(table?.totalSum).toBeCloseTo(table?.xiTotals.reduce((a, b) => a + b, 0) ?? 0);
   });
