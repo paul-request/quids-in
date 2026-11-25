@@ -42,7 +42,7 @@ export async function importPlannerData({
   )?.id;
 
   const [fixtures, squadEntries] = await Promise.all([
-    gameweeks.length === 0 ? [] : fetchJson(fetchFn, '/fixtures/?future=1', 'planner fixtures'),
+    fetchJson(fetchFn, '/fixtures/', 'planner fixtures'),
     Promise.all(
       squadGameweek === undefined
         ? []
@@ -64,6 +64,13 @@ export async function importPlannerData({
     throw new Error('Malformed planner fixtures payload');
   }
 
+  const results = getTeamResults(fixtures);
+  const leagueAverage =
+    [...results.values()].reduce((total, team) => total + team.scored, 0) /
+    Math.max(
+      1,
+      [...results.values()].reduce((total, team) => total + team.matches, 0)
+    );
   const squads = Object.fromEntries(squadEntries);
   const ownedIds = new Set(
     Object.values(squads).flatMap((picks) => picks.map((pick) => pick.playerId))
@@ -82,7 +89,7 @@ export async function importPlannerData({
     players: relevantElements.map((element) => createPlayer(element, recentById.get(element.id))),
     season,
     squads,
-    teams: bootstrap.teams.map(createTeam),
+    teams: bootstrap.teams.map((team) => createTeam(team, results.get(team.id), leagueAverage)),
   };
 }
 
@@ -176,18 +183,77 @@ function readStrength(value, overall) {
   return 900 + requireNumber(overall, 'team overall strength') * 100;
 }
 
-function createTeam(team) {
+const RESULTS_PRIOR_MATCHES = 6;
+const BASE_STRENGTH = 1200;
+
+/** Goals scored and conceded per team, from finished fixtures. */
+function getTeamResults(fixtures) {
+  const results = new Map();
+  const add = (team, scored, conceded) => {
+    const current = results.get(team) ?? { conceded: 0, matches: 0, scored: 0 };
+    results.set(team, {
+      conceded: current.conceded + conceded,
+      matches: current.matches + 1,
+      scored: current.scored + scored,
+    });
+  };
+
+  for (const fixture of fixtures) {
+    if (
+      fixture.finished === true &&
+      Number.isFinite(fixture.team_h_score) &&
+      Number.isFinite(fixture.team_a_score)
+    ) {
+      add(fixture.team_h, fixture.team_h_score, fixture.team_a_score);
+      add(fixture.team_a, fixture.team_a_score, fixture.team_h_score);
+    }
+  }
+
+  return results;
+}
+
+/**
+ * FPL's overall rating cannot tell a great defence from a great attack. When
+ * the real attack/defence strengths are missing, blend the overall rating with
+ * how many goals the team has actually scored and conceded, shrunk towards the
+ * league average while the sample is small.
+ */
+function createStrengths(results, leagueAverage) {
+  if (!results || results.matches === 0 || !(leagueAverage > 0)) {
+    return undefined;
+  }
+
+  const shrink = (total) =>
+    (total + RESULTS_PRIOR_MATCHES * leagueAverage) /
+    (results.matches + RESULTS_PRIOR_MATCHES) /
+    leagueAverage;
+
+  return {
+    attack: BASE_STRENGTH * shrink(results.scored),
+    defence: BASE_STRENGTH / shrink(results.conceded),
+  };
+}
+
+function createTeam(team, results, leagueAverage) {
   const overallHome = team.strength_overall_home;
   const overallAway = team.strength_overall_away;
+  const goals = createStrengths(results, leagueAverage);
+  const blend = (value, overall, fromGoals) => {
+    const strength = readStrength(value, overall);
+
+    return fromGoals !== undefined && !(typeof value === 'number' && value > 0)
+      ? Math.round((strength + fromGoals) / 2)
+      : strength;
+  };
 
   return {
     id: requireNumber(team.id, 'team ID'),
     name: String(team.name),
     shortName: String(team.short_name),
-    strengthAttackAway: readStrength(team.strength_attack_away, overallAway),
-    strengthAttackHome: readStrength(team.strength_attack_home, overallHome),
-    strengthDefenceAway: readStrength(team.strength_defence_away, overallAway),
-    strengthDefenceHome: readStrength(team.strength_defence_home, overallHome),
+    strengthAttackAway: blend(team.strength_attack_away, overallAway, goals?.attack),
+    strengthAttackHome: blend(team.strength_attack_home, overallHome, goals?.attack),
+    strengthDefenceAway: blend(team.strength_defence_away, overallAway, goals?.defence),
+    strengthDefenceHome: blend(team.strength_defence_home, overallHome, goals?.defence),
   };
 }
 

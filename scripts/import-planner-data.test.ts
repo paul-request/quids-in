@@ -74,6 +74,35 @@ function fetchFn() {
 }
 
 describe('importPlannerData', () => {
+  it('rewards a team that concedes few goals when strengths are missing', async () => {
+    const team = (id: number) => ({
+      id,
+      name: `Team ${id}`,
+      short_name: `T${id}`,
+      strength_overall_away: 3,
+      strength_overall_home: 3,
+    });
+    const stub = vi.fn(async (url: string) => {
+      if (url.includes('/bootstrap-static/')) {
+        return jsonResponse({ ...bootstrap, teams: [team(1), team(2)] });
+      }
+
+      if (url.includes('/fixtures/')) {
+        return jsonResponse([
+          { event: 1, finished: true, team_a: 2, team_h: 1, team_a_score: 3, team_h_score: 0 },
+          { event: 1, finished: true, team_a: 1, team_h: 2, team_a_score: 0, team_h_score: 1 },
+        ]);
+      }
+
+      return jsonResponse({ history: [] });
+    });
+    const data = await importPlannerData({ fetchFn: stub, participantIds: [] });
+    const [first, second] = data.teams;
+
+    expect(first.strengthDefenceHome).toBeLessThan(second.strengthDefenceHome);
+    expect(first.strengthAttackHome).toBeLessThan(second.strengthAttackHome);
+  });
+
   it('imports upcoming Gameweeks, squads, and players who played or are owned', async () => {
     const data = await importPlannerData({
       fetchFn: fetchFn(),
@@ -96,7 +125,13 @@ describe('importPlannerData', () => {
       xG: 0.3,
       xGC: 1,
     });
-    expect(data.players[0]).toMatchObject({ form: 0, pointsPerGame: 0, xGPer90: 0.5, xAPer90: 0.2, xGCPer90: 1.1 });
+    expect(data.players[0]).toMatchObject({
+      form: 0,
+      pointsPerGame: 0,
+      xGPer90: 0.5,
+      xAPer90: 0.2,
+      xGCPer90: 1.1,
+    });
   });
 
   it('falls back to overall strength when attack/defence strengths are zero', async () => {
