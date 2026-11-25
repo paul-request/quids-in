@@ -897,7 +897,8 @@ tbody tr:last-child td {
 }
 
 .planner-table {
-  min-width: 34rem;
+  min-width: 38rem;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   text-align: center;
@@ -917,6 +918,14 @@ tbody tr:last-child td {
   min-width: 6.5rem;
   background: #101936;
   text-align: left;
+}
+
+.planner-table thead th:first-child {
+  width: 7.5rem;
+}
+
+.planner-table thead th:last-child {
+  width: 4.5rem;
 }
 
 .planner-player__name {
@@ -999,6 +1008,11 @@ tbody tr:last-child td {
 .planner-total td {
   padding-top: 0.5rem;
   border-top: 1px solid #35456f;
+}
+
+.planner-captain td {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .planner-captain th,
