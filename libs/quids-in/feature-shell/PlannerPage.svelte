@@ -69,7 +69,7 @@
 {/snippet}
 
 <main class="page planner-page">
-  <Header action="dashboard" />
+  <Header action={participant ? 'player' : 'dashboard'} playerId={participant?.id} />
 
   {#if table && participant}
     <section class="dashboard-section" aria-labelledby="planner-heading">

@@ -25,6 +25,12 @@ describe('Header', () => {
     expect(document.querySelector('.app-header--with-actions')).toBeTruthy();
   });
 
+  it('should link back to the player details page for the player action', () => {
+    render(Header, { props: { action: 'player', playerId: 42 } });
+
+    expect(screen.getByRole('link', { name: /Player/ }).getAttribute('href')).toBe('#/players/42');
+  });
+
   it('should render a Dashboard button beside the logo for the dashboard action', () => {
     render(Header, { props: { action: 'dashboard' } });
 

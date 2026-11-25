@@ -1,5 +1,8 @@
 <script lang="ts">
-  let { action = 'none' }: { action?: 'cups' | 'dashboard' | 'none' } = $props();
+  let {
+    action = 'none',
+    playerId,
+  }: { action?: 'cups' | 'dashboard' | 'none' | 'player'; playerId?: number } = $props();
 </script>
 
 <header class="app-header" class:app-header--with-actions={action !== 'none'}>
@@ -12,6 +15,11 @@
         <a class="header-button" href="#/cups">
           <span aria-hidden="true">🏆</span>
           Cups
+        </a>
+      {:else if action === 'player'}
+        <a class="header-button" href="#/players/{playerId}">
+          <span aria-hidden="true">←</span>
+          Player
         </a>
       {:else}
         <a class="header-button" href="#/">
