@@ -911,6 +911,9 @@ tbody tr:last-child td {
 }
 
 .planner-table thead th:first-child,
+.planner-total th,
+.planner-captain th,
+.planner-section th,
 .planner-player {
   position: sticky;
   left: 0;

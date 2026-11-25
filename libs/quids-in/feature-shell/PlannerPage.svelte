@@ -97,7 +97,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="planner-section"><th colspan={table.gameweeks.length + 2} scope="colgroup">Starting XI</th></tr>
+            <tr class="planner-section">
+              <th scope="row">Starting XI</th>
+              <td colspan={table.gameweeks.length + 1}></td>
+            </tr>
             {@render playerRows(table.starters)}
             <tr class="planner-spacer" aria-hidden="true">
               <td colspan={table.gameweeks.length + 2}></td>
@@ -127,7 +130,10 @@
               {/each}
               <td></td>
             </tr>
-            <tr class="planner-section"><th colspan={table.gameweeks.length + 2} scope="colgroup">Bench</th></tr>
+            <tr class="planner-section">
+              <th scope="row">Bench</th>
+              <td colspan={table.gameweeks.length + 1}></td>
+            </tr>
             {@render playerRows(table.bench)}
           </tbody>
         </table>
