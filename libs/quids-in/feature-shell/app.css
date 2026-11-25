@@ -889,6 +889,7 @@ tbody tr:last-child td {
 .planner-table th,
 .planner-table td {
   padding: 0.25rem;
+  border-bottom: 0;
 }
 
 .planner-table thead th:first-child,
@@ -1011,4 +1012,16 @@ tbody tr:last-child td {
 
 .planner-transfers {
   margin-top: 1.5rem;
+}
+
+.player-stats__heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.player-stats__heading .header-button {
+  margin-left: auto;
 }

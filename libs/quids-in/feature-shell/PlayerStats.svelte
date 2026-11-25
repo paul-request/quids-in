@@ -37,9 +37,17 @@
 
   {#if stats}
     <section class="dashboard-section player-stats" aria-labelledby="player-stats-heading">
-      <p class="eyebrow">Player stats</p>
-      <h1 id="player-stats-heading">{stats.participant.name}</h1>
-      <p class="player-stats__team">{stats.participant.teamName}</p>
+      <div class="player-stats__heading">
+        <div>
+          <p class="eyebrow">Player stats</p>
+          <h1 id="player-stats-heading">{stats.participant.name}</h1>
+          <p class="player-stats__team">{stats.participant.teamName}</p>
+        </div>
+        <a class="header-button" href="#/players/{stats.participant.id}/planner">
+          <span aria-hidden="true">📈</span>
+          Squad planner
+        </a>
+      </div>
       <dl class="player-stats__list player-stats__team-value">
         <div>
           <dt>Team value</dt>
@@ -57,7 +65,6 @@
         <div><dt>Current profit/loss</dt><dd>{formatBalance(stats.currentBalancePennies)}</dd></div>
       </dl>
       <ChipsUsedCard {chips} />
-      <p><a href="#/players/{stats.participant.id}/planner">Squad planner</a></p>
     </section>
   {:else if participant}
     <section class="empty-state" aria-labelledby="no-score-heading">
