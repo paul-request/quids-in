@@ -223,6 +223,15 @@ export function projectFixture(
   return projected * multiplier;
 }
 
+// Defender and keeper points rest on a clean sheet, so they have a lower
+// ceiling than a midfielder or forward with the same average. A captain's
+// points are doubled, so rank them by upside rather than the mean alone.
+const DEFENSIVE_CAPTAIN_DISCOUNT = 0.85;
+
+function getCaptainScore(candidate: { points: number; position: PlannerPosition }): number {
+  return candidate.position <= 2 ? candidate.points * DEFENSIVE_CAPTAIN_DISCOUNT : candidate.points;
+}
+
 function buildRow(
   player: PlannerPlayer,
   data: PlannerData,
@@ -302,9 +311,14 @@ export function buildPlannerTable(
 
   const bestCaptains = data.gameweeks.map((gameweek, index) => {
     const ranked = starters
-      .map((row) => ({ name: row.name, points: row.cells[index]?.points ?? 0 }))
+      .map((row) => ({
+        name: row.name,
+        points: row.cells[index]?.points ?? 0,
+        position: row.position,
+      }))
       .filter((candidate) => candidate.points > 0)
-      .sort((a, b) => b.points - a.points);
+      .sort((a, b) => getCaptainScore(b) - getCaptainScore(a))
+      .map(({ name, points }) => ({ name, points }));
     const [best, vice] = ranked;
 
     return { gameweek, points: best?.points ?? 0, name: best?.name, vice };
