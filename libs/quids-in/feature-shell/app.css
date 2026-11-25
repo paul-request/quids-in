@@ -988,6 +988,16 @@ tbody tr:last-child td {
   font-weight: 700;
 }
 
+.planner-total th,
+.planner-total td {
+  border-top: 1px solid #35456f;
+}
+
+.planner-captain th,
+.planner-captain td {
+  border-bottom: 1px solid #35456f;
+}
+
 .planner-suggestions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
