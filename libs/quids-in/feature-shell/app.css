@@ -338,10 +338,6 @@ a:focus-visible {
   font-weight: 700;
 }
 
-.player-stats {
-  max-width: 50rem;
-}
-
 .player-stats__team {
   margin: 0.25rem 0 1.5rem;
   color: #c8d4ff;
@@ -867,10 +863,6 @@ tbody tr:last-child td {
     margin-bottom: 1.5rem;
     break-inside: avoid;
   }
-}
-
-.planner-page {
-  max-width: 64rem;
 }
 
 .planner-note {
