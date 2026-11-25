@@ -16,7 +16,7 @@ const CLEAN_SHEET_POINTS: Record<PlannerPosition, number> = { 1: 4, 2: 4, 3: 1, 
 const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.3, 2: 0.35, 3: 0.35, 4: 0.4 };
 const ASSIST_POINTS = 3;
 const DEFAULT_XGC_PER_90 = 1.3;
-const FORM_WEIGHT = 0.5;
+const FORM_WEIGHT = 0.25;
 const FORM_RATIO_MAX = 1.6;
 const POSITION_ORDER: Array<PlannerPosition> = [1, 2, 3, 4];
 
