@@ -18,6 +18,12 @@ const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.45, 2: 0.35, 3: 0.3
 // Home sides score about 30% more than away sides, split across both teams.
 const HOME_ADVANTAGE = 1.14;
 const SAVES_PER_POINT = 3;
+// League-average xG and xA per 90 by position. Rates are pulled towards these
+// until a player has plenty of minutes, so a few chances don't make a
+// defender look like a forward.
+const XG_PRIOR_PER_90: Record<PlannerPosition, number> = { 1: 0, 2: 0.06, 3: 0.17, 4: 0.46 };
+const XA_PRIOR_PER_90: Record<PlannerPosition, number> = { 1: 0, 2: 0.056, 3: 0.133, 4: 0.06 };
+const ATTACKING_PRIOR_MINUTES = 900;
 // Defenders earn 2 points for 10+ defensive contributions and midfielders for
 // 12+. About 29% of defender and 14% of midfielder appearances reach it, used
 // as the prior for each player's own rate.
@@ -35,6 +41,8 @@ const RECENT_MINUTES_WEIGHT = 0.7;
 const RECENT_RATE_WEIGHT = 0.5;
 const MIN_RECENT_MINUTES_FOR_RATES = 180;
 const FORM_RATIO_MAX = 1.6;
+// A defender's points per game swings on a few goals, so trust it less.
+const DEFENDER_FORM_RATIO_MAX = 1.25;
 const POSITION_ORDER: Array<PlannerPosition> = [1, 2, 3, 4];
 
 interface Averages {
@@ -82,6 +90,9 @@ function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
     finishedGameweeks > 0 ? 90 * Math.min(1, player.minutes / (finishedGameweeks * 90)) : 0;
   const recent = player.recent ?? [];
   const prior = DEFENSIVE_CONTRIBUTION_PRIOR[player.position] ?? 0;
+  const sampleShare = player.minutes / (player.minutes + ATTACKING_PRIOR_MINUTES);
+  const shrink = (rate: number, leagueRate: number): number =>
+    sampleShare * rate + (1 - sampleShare) * leagueRate;
   const threshold = DEFENSIVE_CONTRIBUTION_THRESHOLD[player.position] ?? Infinity;
 
   if (recent.length === 0) {
@@ -89,9 +100,9 @@ function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
       defensiveContributionChance: prior,
       minutes: seasonMinutes,
       savesPer90: player.savesPer90 ?? 0,
-      xAPer90: player.xAPer90,
+      xAPer90: shrink(player.xAPer90, XA_PRIOR_PER_90[player.position]),
       xGCPer90: player.xGCPer90,
-      xGPer90: player.xGPer90,
+      xGPer90: shrink(player.xGPer90, XG_PRIOR_PER_90[player.position]),
     };
   }
 
@@ -130,17 +141,23 @@ function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
       weighted((match) => match.saves ?? 0)
     ),
     minutes: RECENT_MINUTES_WEIGHT * recentMinutes + (1 - RECENT_MINUTES_WEIGHT) * seasonMinutes,
-    xAPer90: blendRate(
-      player.xAPer90,
-      weighted((match) => match.xA)
+    xAPer90: shrink(
+      blendRate(
+        player.xAPer90,
+        weighted((match) => match.xA)
+      ),
+      XA_PRIOR_PER_90[player.position]
     ),
     xGCPer90: blendRate(
       player.xGCPer90,
       weighted((match) => match.xGC)
     ),
-    xGPer90: blendRate(
-      player.xGPer90,
-      weighted((match) => match.xG)
+    xGPer90: shrink(
+      blendRate(
+        player.xGPer90,
+        weighted((match) => match.xG)
+      ),
+      XG_PRIOR_PER_90[player.position]
     ),
   };
 }
@@ -218,11 +235,12 @@ export function projectFixture(
     { value: player.form, weight: FORM_WEIGHT },
     { value: player.pointsPerGame, weight: POINTS_PER_GAME_WEIGHT },
   ];
+  const ratioMax = player.position <= 2 ? DEFENDER_FORM_RATIO_MAX : FORM_RATIO_MAX;
   const multiplier = anchors.reduce(
     (total, { value, weight }) =>
       value === undefined || neutral <= 0
         ? total
-        : total + weight * (Math.min(FORM_RATIO_MAX, value / neutral) - 1),
+        : total + weight * (Math.min(ratioMax, value / neutral) - 1),
     1
   );
 
