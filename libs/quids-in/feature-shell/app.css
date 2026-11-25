@@ -710,6 +710,16 @@ tbody tr:last-child td {
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
+.score-table tbody tr:last-child th,
+.score-table tbody tr:last-child td {
+  border-bottom: 1px solid #35456f;
+}
+
+.score-table .winning-score:last-child th,
+.score-table .winning-score:last-child td {
+  border-bottom-color: #ffe36e;
+}
+
 .score-table thead th,
 .score-table thead th:first-child {
   border-top: 0;
