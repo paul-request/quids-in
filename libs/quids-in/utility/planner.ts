@@ -14,7 +14,15 @@ export const PLANNER_HORIZON = 5;
 
 const GOAL_POINTS: Record<PlannerPosition, number> = { 1: 6, 2: 6, 3: 5, 4: 4 };
 const CLEAN_SHEET_POINTS: Record<PlannerPosition, number> = { 1: 4, 2: 4, 3: 1, 4: 0 };
-const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.3, 2: 0.35, 3: 0.35, 4: 0.4 };
+const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.45, 2: 0.35, 3: 0.35, 4: 0.4 };
+const SAVES_PER_POINT = 3;
+// Defenders earn 2 points for 10+ defensive contributions. Roughly 29% of
+// defender appearances reach it, used as the prior for each player's own rate.
+const DEFENSIVE_CONTRIBUTION_POINTS = 2;
+const DEFENSIVE_CONTRIBUTION_THRESHOLD = 10;
+const DEFENSIVE_CONTRIBUTION_PRIOR = 0.29;
+const DEFENSIVE_CONTRIBUTION_PRIOR_WEIGHT = 2;
+const MIN_MINUTES_FOR_DEFENSIVE_CONTRIBUTION = 45;
 const ASSIST_POINTS = 3;
 const DEFAULT_XGC_PER_90 = 1.3;
 const FORM_WEIGHT = 0.18;
@@ -52,7 +60,9 @@ function getAvailability(player: PlannerPlayer): number {
 }
 
 interface Profile {
+  defensiveContributionChance: number;
   minutes: number;
+  savesPer90: number;
   xAPer90: number;
   xGCPer90: number;
   xGPer90: number;
@@ -70,7 +80,9 @@ function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
 
   if (recent.length === 0) {
     return {
+      defensiveContributionChance: DEFENSIVE_CONTRIBUTION_PRIOR,
       minutes: seasonMinutes,
+      savesPer90: player.savesPer90 ?? 0,
       xAPer90: player.xAPer90,
       xGCPer90: player.xGCPer90,
       xGPer90: player.xGPer90,
@@ -89,7 +101,28 @@ function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
         (RECENT_RATE_WEIGHT * recentTotal * 90) / weightedMinutes
       : season;
 
+  const defenders = recent
+    .map((match, index) => ({ match, weight: weights[index] ?? 0 }))
+    .filter(
+      ({ match }) =>
+        match.minutes >= MIN_MINUTES_FOR_DEFENSIVE_CONTRIBUTION &&
+        match.defensiveContribution !== undefined
+    );
+  const hitWeight = defenders.reduce(
+    (total, { match, weight }) =>
+      total + ((match.defensiveContribution ?? 0) >= DEFENSIVE_CONTRIBUTION_THRESHOLD ? weight : 0),
+    0
+  );
+  const sampleWeight = defenders.reduce((total, { weight }) => total + weight, 0);
+
   return {
+    defensiveContributionChance:
+      (hitWeight + DEFENSIVE_CONTRIBUTION_PRIOR * DEFENSIVE_CONTRIBUTION_PRIOR_WEIGHT) /
+      (sampleWeight + DEFENSIVE_CONTRIBUTION_PRIOR_WEIGHT),
+    savesPer90: blendRate(
+      player.savesPer90 ?? 0,
+      weighted((match) => match.saves ?? 0)
+    ),
     minutes: RECENT_MINUTES_WEIGHT * recentMinutes + (1 - RECENT_MINUTES_WEIGHT) * seasonMinutes,
     xAPer90: blendRate(
       player.xAPer90,
@@ -141,8 +174,27 @@ export function projectFixture(
       CLEAN_SHEET_POINTS[player.position];
     const concededPenalty = player.position <= 2 ? (expectedConceded / 2) * fractionOfGame : 0;
     const bonus = BONUS_PER_90[player.position] * fractionOfGame;
+    const saves =
+      player.position === 1
+        ? (profile.savesPer90 * fractionOfGame * concedingFactor) / SAVES_PER_POINT
+        : 0;
+    const defensiveContribution =
+      player.position === 2
+        ? profile.defensiveContributionChance *
+          Math.min(1, expectedMinutes / 60) *
+          DEFENSIVE_CONTRIBUTION_POINTS
+        : 0;
 
-    return appearance + goals + assists + cleanSheet + bonus - concededPenalty;
+    return (
+      appearance +
+      goals +
+      assists +
+      cleanSheet +
+      bonus +
+      saves +
+      defensiveContribution -
+      concededPenalty
+    );
   };
 
   const projected = expected(averages.defence / opponentDefence, opponentAttack / averages.attack);

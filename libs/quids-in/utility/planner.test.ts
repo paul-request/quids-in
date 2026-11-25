@@ -121,6 +121,44 @@ describe('projectFixture', () => {
     expect(hot).toBeGreaterThan(base);
   });
 
+  it('rewards goalkeepers for saves and defenders for frequent defensive contributions', () => {
+    const match = (saves: number, defensiveContribution: number) => ({
+      defensiveContribution,
+      minutes: 90,
+      saves,
+      xA: 0,
+      xG: 0,
+      xGC: 1,
+    });
+    const recent = (saves: number, dc: number) => Array.from({ length: 6 }, () => match(saves, dc));
+    const keeper = (saves: number) =>
+      projectFixture(
+        player({
+          id: 1,
+          position: 1,
+          recent: recent(saves, 0),
+          savesPer90: saves,
+          xAPer90: 0,
+          xGPer90: 0,
+        }),
+        opponent,
+        true,
+        10,
+        averages
+      );
+    const defender = (dc: number) =>
+      projectFixture(
+        player({ id: 2, position: 2, recent: recent(0, dc), xAPer90: 0, xGPer90: 0 }),
+        opponent,
+        true,
+        10,
+        averages
+      );
+
+    expect(keeper(5)).toBeGreaterThan(keeper(1));
+    expect(defender(12)).toBeGreaterThan(defender(3));
+  });
+
   it('projects nothing for players with no minutes', () => {
     expect(projectFixture(player({ id: 1, minutes: 0 }), opponent, true, 10, averages)).toBe(0);
   });

@@ -122,7 +122,9 @@ async function fetchRecentMatches(fetchFn, elements) {
         recentById.set(
           element.id,
           summary.history.slice(-RECENT_MATCHES).map((match) => ({
+            defensiveContribution: readPer90(match.defensive_contribution),
             minutes: requireNumber(match.minutes, 'match minutes'),
+            saves: readPer90(match.saves),
             xA: readPer90(match.expected_assists),
             xG: readPer90(match.expected_goals),
             xGC: readPer90(match.expected_goals_conceded),
@@ -150,6 +152,7 @@ function createPlayer(element, recent) {
     name: String(element.web_name),
     position,
     ...(recent && recent.length > 0 ? { recent } : {}),
+    savesPer90: readPer90(element.saves_per_90),
     status: String(element.status),
     team: requireNumber(element.team, 'player team'),
     xAPer90: readPer90(element.expected_assists_per_90),

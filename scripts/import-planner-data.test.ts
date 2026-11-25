@@ -88,7 +88,14 @@ describe('importPlannerData', () => {
     expect(data.squads).toEqual({ '10': [{ playerId: 3, slot: 1 }] });
     expect(data.players.map((player: { id: number }) => player.id)).toEqual([1, 3]);
     expect(data.players[0].recent).toHaveLength(6);
-    expect(data.players[0].recent[5]).toEqual({ minutes: 7, xA: 0.1, xG: 0.3, xGC: 1 });
+    expect(data.players[0].recent[5]).toEqual({
+      defensiveContribution: 0,
+      minutes: 7,
+      saves: 0,
+      xA: 0.1,
+      xG: 0.3,
+      xGC: 1,
+    });
     expect(data.players[0]).toMatchObject({ form: 0, xGPer90: 0.5, xAPer90: 0.2, xGCPer90: 1.1 });
   });
 

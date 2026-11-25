@@ -31,6 +31,7 @@ export interface PlannerPlayer {
   position: PlannerPosition;
   /** The player's latest team matches, oldest first. */
   recent?: Array<PlannerMatch>;
+  savesPer90?: number;
   status: string;
   team: number;
   xAPer90: number;
@@ -39,7 +40,9 @@ export interface PlannerPlayer {
 }
 
 export interface PlannerMatch {
+  defensiveContribution?: number;
   minutes: number;
+  saves?: number;
   xA: number;
   xG: number;
   xGC: number;
