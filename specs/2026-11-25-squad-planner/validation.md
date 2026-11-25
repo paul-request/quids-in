@@ -1,4 +1,4 @@
-# Validation: Squad planner (Phase 16)
+# Validation: Squad planner (Phase 19)
 
 - `npm run validate` passes (lint, typecheck, tests, build).
 - Projection unit tests cover every position, availability, home/away,

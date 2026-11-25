@@ -552,6 +552,15 @@ Full detail:
   repeated refreshes, and a season with no completed Gameweeks behave
   correctly.
 
+## Phase 19 — Squad planner
+
+- Per-participant page at `#/players/:id/planner` showing the squad's
+  projected points and fixture difficulty for the next five Gameweeks, with
+  XI total, best captain and transfer suggestions.
+- See [specs/2026-11-25-squad-planner](./2026-11-25-squad-planner/requirements.md).
+- **Done when:** `npm run validate` passes and the page renders real
+  projections for every participant.
+
 ## Explicitly deferred / not planned
 
 - Direct browser-side FPL API integration remains deferred. Phase 16 assesses

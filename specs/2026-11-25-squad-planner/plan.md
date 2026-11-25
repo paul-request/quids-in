@@ -1,4 +1,4 @@
-# Plan: Squad planner (Phase 16)
+# Plan: Squad planner (Phase 19)
 
 ## 1. Data contracts
 
@@ -19,8 +19,10 @@
 2. Store per-player: position, team, price, status, chance of playing, minutes,
    xG/xA/xGC per 90, starts, plus per-team strengths and upcoming fixtures
    with FDR.
-3. Reuse existing retry, timeout, validation and atomic-write helpers; fail the
-   import on bad data like the cup import does.
+3. Reuse the season importer's retry and timeout fetch helper and write
+   atomically. Malformed data fails the planner import; the workflow step is
+   `continue-on-error`, so a planner failure deploys the committed (dated)
+   planner file rather than blocking the site.
 4. Wire into the deploy workflow's data step; tests with stubbed responses
    (blank/double GWs, missing picks, unavailable players).
 
@@ -48,4 +50,6 @@
 
 ## 5. Docs and roadmap
 
-Add Phase 16 to `specs/roadmap.md`; note the data file and model in README.
+Add Phase 19 to `specs/roadmap.md`; note the data file and model in README.
+FPL can publish zero attack/defence strengths; the importer then derives them
+from the 1-5 overall strengths.

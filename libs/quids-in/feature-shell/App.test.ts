@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import historicalSeason from '../../../data/season-2025-26.json';
 import type { CupDrawFile } from '../utility/cups.interfaces';
+import type { PlannerData } from '../utility/planner.interfaces';
 import type { Season } from '../utility/results.interfaces';
 
 import App from './App.svelte';
@@ -548,5 +549,45 @@ describe('App', () => {
     renderApp(statsSeason);
 
     expect(screen.queryByRole('link', { name: 'Cups' })).toBeNull();
+  });
+
+  it('renders the squad planner for a participant from the planner route', () => {
+    const plannerData: PlannerData = {
+      finishedGameweeks: 10,
+      fixtures: [{ awayDifficulty: 2, awayTeam: 2, event: 11, homeDifficulty: 4, homeTeam: 1 }],
+      gameweeks: [11],
+      generatedAt: '2026-11-25T00:00:00.000Z',
+      players: [
+        {
+          chanceOfPlaying: null,
+          id: 5,
+          minutes: 900,
+          name: 'Haaland',
+          position: 4,
+          status: 'a',
+          team: 1,
+          xAPer90: 0.2,
+          xGCPer90: 1,
+          xGPer90: 0.8,
+        },
+      ],
+      season: '2025-26',
+      squads: { '1': [{ playerId: 5, slot: 1 }] },
+      teams: [1, 2].map((id) => ({
+        id,
+        name: `T${id}`,
+        shortName: `T${id}`,
+        strengthAttackAway: 1200,
+        strengthAttackHome: 1200,
+        strengthDefenceAway: 1200,
+        strengthDefenceHome: 1200,
+      })),
+    };
+
+    window.location.hash = '#/players/1/planner';
+    render(App, { props: { plannerData, seasonData: statsSeason } });
+
+    expect(screen.getByRole('heading', { name: 'Alice' })).toBeTruthy();
+    expect(screen.getByText('T2·H')).toBeTruthy();
   });
 });

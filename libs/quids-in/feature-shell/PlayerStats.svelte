@@ -57,6 +57,7 @@
         <div><dt>Current profit/loss</dt><dd>{formatBalance(stats.currentBalancePennies)}</dd></div>
       </dl>
       <ChipsUsedCard {chips} />
+      <p><a href="#/players/{stats.participant.id}/planner">Squad planner</a></p>
     </section>
   {:else if participant}
     <section class="empty-state" aria-labelledby="no-score-heading">
