@@ -73,6 +73,16 @@ describe('projectFixture', () => {
     expect(injured).toBe(0);
   });
 
+  it('lowers projections for players in poor recent form and raises them for hot form', () => {
+    const baseline = projectFixture(forward, opponent, true, 10, averages);
+    const cold = projectFixture(player({ id: 1, form: 1 }), opponent, true, 10, averages);
+    const hot = projectFixture(player({ id: 1, form: 9 }), opponent, true, 10, averages);
+
+    expect(cold).toBeLessThan(baseline);
+    expect(hot).toBeGreaterThan(baseline);
+    expect(cold).toBeGreaterThan(0);
+  });
+
   it('projects nothing for players with no minutes', () => {
     expect(projectFixture(player({ id: 1, minutes: 0 }), opponent, true, 10, averages)).toBe(0);
   });

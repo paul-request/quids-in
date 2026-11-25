@@ -78,7 +78,7 @@
       <p class="player-stats__team">{participant.teamName}</p>
       <p class="planner-note">
         Projected points are estimates based on xG, xA, xGC, minutes played, availability and
-        opponent strength. Cells show the opponent, venue (H/A) and projected points, coloured by
+        opponent strength, adjusted for recent form. Cells show the opponent, venue (H/A) and projected points, coloured by
         fixture difficulty.
       </p>
 
@@ -126,11 +126,11 @@
         </table>
       </div>
       {#if generatedAt}
-        <p class="planner-note">Projections generated {new Date(generatedAt).toLocaleString('en-GB')}.</p>
+        <p class="planner-note planner-generated">Projections generated {new Date(generatedAt).toLocaleString('en-GB')}.</p>
       {/if}
     </section>
 
-    <section class="dashboard-section" aria-labelledby="transfers-heading">
+    <section class="dashboard-section planner-transfers" aria-labelledby="transfers-heading">
       <h2 id="transfers-heading">Transfer suggestions</h2>
       <p class="planner-note">
         Highest projected players over the next {table.gameweeks.length} Gameweeks who are not in

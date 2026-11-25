@@ -881,13 +881,14 @@ tbody tr:last-child td {
 
 .planner-table {
   min-width: 34rem;
+  border-collapse: separate;
+  border-spacing: 0.25rem;
   text-align: center;
 }
 
 .planner-table th,
 .planner-table td {
   padding: 0.25rem;
-  border-bottom: 1px solid #35456f;
 }
 
 .planner-table thead th:first-child,
@@ -1001,4 +1002,13 @@ tbody tr:last-child td {
 .planner-suggestion__points {
   margin-left: auto;
   font-weight: 700;
+}
+
+.planner-generated {
+  margin-top: 1.5rem;
+}
+
+
+.planner-transfers {
+  margin-top: 1.5rem;
 }

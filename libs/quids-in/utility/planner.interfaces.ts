@@ -23,6 +23,8 @@ export interface PlannerTeam {
 
 export interface PlannerPlayer {
   chanceOfPlaying: number | null;
+  /** FPL's recent form: average points over the last 30 days. */
+  form?: number;
   id: number;
   minutes: number;
   name: string;

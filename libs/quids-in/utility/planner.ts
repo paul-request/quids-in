@@ -16,6 +16,8 @@ const CLEAN_SHEET_POINTS: Record<PlannerPosition, number> = { 1: 4, 2: 4, 3: 1, 
 const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.3, 2: 0.35, 3: 0.35, 4: 0.4 };
 const ASSIST_POINTS = 3;
 const DEFAULT_XGC_PER_90 = 1.3;
+const FORM_WEIGHT = 0.5;
+const FORM_RATIO_MAX = 1.6;
 const POSITION_ORDER: Array<PlannerPosition> = [1, 2, 3, 4];
 
 interface Averages {
@@ -67,22 +69,36 @@ export function projectFixture(
   const fractionOfGame = expectedMinutes / 90;
   const opponentDefence = isHome ? opponent.strengthDefenceAway : opponent.strengthDefenceHome;
   const opponentAttack = isHome ? opponent.strengthAttackAway : opponent.strengthAttackHome;
-  const attackingFactor = averages.defence / opponentDefence;
-  const concedingFactor = opponentAttack / averages.attack;
 
-  const appearance = 2 * Math.min(1, expectedMinutes / 60);
-  const goals = player.xGPer90 * fractionOfGame * attackingFactor * GOAL_POINTS[player.position];
-  const assists = player.xAPer90 * fractionOfGame * attackingFactor * ASSIST_POINTS;
-  const expectedConceded =
-    (player.xGCPer90 > 0 ? player.xGCPer90 : DEFAULT_XGC_PER_90) * concedingFactor;
-  const cleanSheet =
-    Math.exp(-expectedConceded) *
-    Math.min(1, expectedMinutes / 60) *
-    CLEAN_SHEET_POINTS[player.position];
-  const concededPenalty = player.position <= 2 ? (expectedConceded / 2) * fractionOfGame : 0;
-  const bonus = BONUS_PER_90[player.position] * fractionOfGame;
+  const expected = (attackingFactor: number, concedingFactor: number): number => {
+    const appearance = 2 * Math.min(1, expectedMinutes / 60);
+    const goals = player.xGPer90 * fractionOfGame * attackingFactor * GOAL_POINTS[player.position];
+    const assists = player.xAPer90 * fractionOfGame * attackingFactor * ASSIST_POINTS;
+    const expectedConceded =
+      (player.xGCPer90 > 0 ? player.xGCPer90 : DEFAULT_XGC_PER_90) * concedingFactor;
+    const cleanSheet =
+      Math.exp(-expectedConceded) *
+      Math.min(1, expectedMinutes / 60) *
+      CLEAN_SHEET_POINTS[player.position];
+    const concededPenalty = player.position <= 2 ? (expectedConceded / 2) * fractionOfGame : 0;
+    const bonus = BONUS_PER_90[player.position] * fractionOfGame;
 
-  return appearance + goals + assists + cleanSheet + bonus - concededPenalty;
+    return appearance + goals + assists + cleanSheet + bonus - concededPenalty;
+  };
+
+  const projected = expected(averages.defence / opponentDefence, opponentAttack / averages.attack);
+
+  if (player.form === undefined) {
+    return projected;
+  }
+
+  // Season-long xG/xA says what a player should score; recent form says whether
+  // they are doing it. Scale the projection by how far form is from the
+  // expectation against an average opponent, weighted by FORM_WEIGHT.
+  const neutral = expected(1, 1);
+  const formRatio = neutral > 0 ? Math.min(FORM_RATIO_MAX, player.form / neutral) : 1;
+
+  return projected * (1 - FORM_WEIGHT + FORM_WEIGHT * formRatio);
 }
 
 function buildRow(

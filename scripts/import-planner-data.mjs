@@ -106,6 +106,7 @@ function createPlayer(element) {
 
   return {
     chanceOfPlaying: element.chance_of_playing_next_round ?? null,
+    form: readPer90(element.form),
     id: requireNumber(element.id, 'player ID'),
     minutes: requireNumber(element.minutes, 'player minutes'),
     name: String(element.web_name),

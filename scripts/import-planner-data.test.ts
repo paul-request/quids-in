@@ -76,7 +76,7 @@ describe('importPlannerData', () => {
     expect(data.fixtures).toHaveLength(1);
     expect(data.squads).toEqual({ '10': [{ playerId: 3, slot: 1 }] });
     expect(data.players.map((player: { id: number }) => player.id)).toEqual([1, 3]);
-    expect(data.players[0]).toMatchObject({ xGPer90: 0.5, xAPer90: 0.2, xGCPer90: 1.1 });
+    expect(data.players[0]).toMatchObject({ form: 0, xGPer90: 0.5, xAPer90: 0.2, xGCPer90: 1.1 });
   });
 
   it('falls back to overall strength when attack/defence strengths are zero', async () => {
