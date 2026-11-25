@@ -1029,3 +1029,17 @@ tbody tr:last-child td {
   font-size: 0.8125rem;
   font-weight: 400;
 }
+
+@media (max-width: 40rem) {
+  .player-stats__heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .player-stats__heading .header-button {
+    justify-content: center;
+    margin-left: 0;
+  }
+}
