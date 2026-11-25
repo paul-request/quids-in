@@ -871,6 +871,10 @@ tbody tr:last-child td {
   font-size: 0.875rem;
 }
 
+.planner-wrapper {
+  position: relative;
+}
+
 .planner-table {
   min-width: 34rem;
   border-collapse: separate;
