@@ -15,6 +15,8 @@ export const PLANNER_HORIZON = 5;
 const GOAL_POINTS: Record<PlannerPosition, number> = { 1: 6, 2: 6, 3: 5, 4: 4 };
 const CLEAN_SHEET_POINTS: Record<PlannerPosition, number> = { 1: 4, 2: 4, 3: 1, 4: 0 };
 const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.45, 2: 0.35, 3: 0.35, 4: 0.4 };
+// Home sides score about 30% more than away sides, split across both teams.
+const HOME_ADVANTAGE = 1.14;
 const SAVES_PER_POINT = 3;
 // Defenders earn 2 points for 10+ defensive contributions and midfielders for
 // 12+. About 29% of defender and 14% of midfielder appearances reach it, used
@@ -201,7 +203,11 @@ export function projectFixture(
     );
   };
 
-  const projected = expected(averages.defence / opponentDefence, opponentAttack / averages.attack);
+  const venue = isHome ? HOME_ADVANTAGE : 1 / HOME_ADVANTAGE;
+  const projected = expected(
+    (averages.defence / opponentDefence) * venue,
+    opponentAttack / averages.attack / venue
+  );
 
   // Season-long xG/xA says what a player should score; recent form and the
   // season's points per game say whether they actually do (elite finishers

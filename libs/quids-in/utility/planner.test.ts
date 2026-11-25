@@ -73,6 +73,12 @@ describe('projectFixture', () => {
     expect(injured).toBe(0);
   });
 
+  it('projects more points at home than away', () => {
+    expect(projectFixture(forward, opponent, true, 10, averages)).toBeGreaterThan(
+      projectFixture(forward, opponent, false, 10, averages)
+    );
+  });
+
   it('anchors projections towards season points per game', () => {
     const baseline = projectFixture(forward, opponent, true, 10, averages);
     const elite = projectFixture(player({ id: 1, pointsPerGame: 9 }), opponent, true, 10, averages);
