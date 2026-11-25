@@ -107,16 +107,14 @@
               <td class="planner-sum">{formatNumber(Math.round(table.totalSum))}</td>
             </tr>
             <tr class="planner-captain">
-              <th scope="row">Captain <span class="planner-player__position">Vice below</span></th>
+              <th scope="row">Captain <span class="planner-player__position">Vice captain</span></th>
               {#each table.bestCaptains as captain (captain.gameweek)}
                 <td>
                   {#if captain.name}
                     {captain.name}
-                    <span class="planner-player__position">{points(captain.points)}</span>
                     {#if captain.vice}
                       <span class="planner-vice">
-                        VC {captain.vice.name}
-                        <span class="planner-player__position">{points(captain.vice.points)}</span>
+                        {captain.vice.name}
                       </span>
                     {/if}
                   {:else}

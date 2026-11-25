@@ -51,7 +51,7 @@ describe('PlannerPage', () => {
     expect(within(grid).getAllByText('4.0').length).toBeGreaterThan(0);
     expect(within(grid).getAllByText('Fixture difficulty 5 out of 5')).toHaveLength(1);
     expect(within(grid).getAllByText('No fixture')).toHaveLength(2);
-    expect(within(grid).getByText('7.8')).toBeTruthy();
+    expect(within(grid).getByText('Haaland', { selector: 'td' })).toBeTruthy();
     expect(within(grid).getByText('16')).toBeTruthy();
     expect(screen.getByText('Transfer suggestions')).toBeTruthy();
     expect(screen.getByText('Isak')).toBeTruthy();
