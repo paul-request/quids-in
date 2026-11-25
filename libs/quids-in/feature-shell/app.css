@@ -338,6 +338,10 @@ a:focus-visible {
   font-weight: 700;
 }
 
+.player-stats__heading h1 {
+  margin-bottom: 0;
+}
+
 .player-stats__team {
   margin: 0.25rem 0 1.5rem;
   color: #c8d4ff;
