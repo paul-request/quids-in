@@ -16,16 +16,18 @@ const GOAL_POINTS: Record<PlannerPosition, number> = { 1: 6, 2: 6, 3: 5, 4: 4 };
 const CLEAN_SHEET_POINTS: Record<PlannerPosition, number> = { 1: 4, 2: 4, 3: 1, 4: 0 };
 const BONUS_PER_90: Record<PlannerPosition, number> = { 1: 0.45, 2: 0.35, 3: 0.35, 4: 0.4 };
 const SAVES_PER_POINT = 3;
-// Defenders earn 2 points for 10+ defensive contributions. Roughly 29% of
-// defender appearances reach it, used as the prior for each player's own rate.
+// Defenders earn 2 points for 10+ defensive contributions and midfielders for
+// 12+. About 29% of defender and 14% of midfielder appearances reach it, used
+// as the prior for each player's own rate.
 const DEFENSIVE_CONTRIBUTION_POINTS = 2;
-const DEFENSIVE_CONTRIBUTION_THRESHOLD = 10;
-const DEFENSIVE_CONTRIBUTION_PRIOR = 0.29;
+const DEFENSIVE_CONTRIBUTION_THRESHOLD: Partial<Record<PlannerPosition, number>> = { 2: 10, 3: 12 };
+const DEFENSIVE_CONTRIBUTION_PRIOR: Partial<Record<PlannerPosition, number>> = { 2: 0.29, 3: 0.14 };
 const DEFENSIVE_CONTRIBUTION_PRIOR_WEIGHT = 2;
 const MIN_MINUTES_FOR_DEFENSIVE_CONTRIBUTION = 45;
 const ASSIST_POINTS = 3;
 const DEFAULT_XGC_PER_90 = 1.3;
 const FORM_WEIGHT = 0.18;
+const POINTS_PER_GAME_WEIGHT = 0.3;
 const RECENT_DECAY = 0.85;
 const RECENT_MINUTES_WEIGHT = 0.7;
 const RECENT_RATE_WEIGHT = 0.5;
@@ -77,10 +79,12 @@ function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
   const seasonMinutes =
     finishedGameweeks > 0 ? 90 * Math.min(1, player.minutes / (finishedGameweeks * 90)) : 0;
   const recent = player.recent ?? [];
+  const prior = DEFENSIVE_CONTRIBUTION_PRIOR[player.position] ?? 0;
+  const threshold = DEFENSIVE_CONTRIBUTION_THRESHOLD[player.position] ?? Infinity;
 
   if (recent.length === 0) {
     return {
-      defensiveContributionChance: DEFENSIVE_CONTRIBUTION_PRIOR,
+      defensiveContributionChance: prior,
       minutes: seasonMinutes,
       savesPer90: player.savesPer90 ?? 0,
       xAPer90: player.xAPer90,
@@ -110,14 +114,14 @@ function getProfile(player: PlannerPlayer, finishedGameweeks: number): Profile {
     );
   const hitWeight = defenders.reduce(
     (total, { match, weight }) =>
-      total + ((match.defensiveContribution ?? 0) >= DEFENSIVE_CONTRIBUTION_THRESHOLD ? weight : 0),
+      total + ((match.defensiveContribution ?? 0) >= threshold ? weight : 0),
     0
   );
   const sampleWeight = defenders.reduce((total, { weight }) => total + weight, 0);
 
   return {
     defensiveContributionChance:
-      (hitWeight + DEFENSIVE_CONTRIBUTION_PRIOR * DEFENSIVE_CONTRIBUTION_PRIOR_WEIGHT) /
+      (hitWeight + prior * DEFENSIVE_CONTRIBUTION_PRIOR_WEIGHT) /
       (sampleWeight + DEFENSIVE_CONTRIBUTION_PRIOR_WEIGHT),
     savesPer90: blendRate(
       player.savesPer90 ?? 0,
@@ -179,7 +183,7 @@ export function projectFixture(
         ? (profile.savesPer90 * fractionOfGame * concedingFactor) / SAVES_PER_POINT
         : 0;
     const defensiveContribution =
-      player.position === 2
+      player.position === 2 || player.position === 3
         ? profile.defensiveContributionChance *
           Math.min(1, expectedMinutes / 60) *
           DEFENSIVE_CONTRIBUTION_POINTS
@@ -199,17 +203,24 @@ export function projectFixture(
 
   const projected = expected(averages.defence / opponentDefence, opponentAttack / averages.attack);
 
-  if (player.form === undefined) {
-    return projected;
-  }
-
-  // Season-long xG/xA says what a player should score; recent form says whether
-  // they are doing it. Scale the projection by how far form is from the
-  // expectation against an average opponent, weighted by FORM_WEIGHT.
+  // Season-long xG/xA says what a player should score; recent form and the
+  // season's points per game say whether they actually do (elite finishers
+  // beat their xG). Scale the projection by how far each is from the
+  // expectation against an average opponent, weighted by its anchor weight.
   const neutral = expected(1, 1);
-  const formRatio = neutral > 0 ? Math.min(FORM_RATIO_MAX, player.form / neutral) : 1;
+  const anchors = [
+    { value: player.form, weight: FORM_WEIGHT },
+    { value: player.pointsPerGame, weight: POINTS_PER_GAME_WEIGHT },
+  ];
+  const multiplier = anchors.reduce(
+    (total, { value, weight }) =>
+      value === undefined || neutral <= 0
+        ? total
+        : total + weight * (Math.min(FORM_RATIO_MAX, value / neutral) - 1),
+    1
+  );
 
-  return projected * (1 - FORM_WEIGHT + FORM_WEIGHT * formRatio);
+  return projected * multiplier;
 }
 
 function buildRow(

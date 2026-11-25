@@ -28,6 +28,8 @@ export interface PlannerPlayer {
   id: number;
   minutes: number;
   name: string;
+  /** FPL's season points per game. */
+  pointsPerGame?: number;
   position: PlannerPosition;
   /** The player's latest team matches, oldest first. */
   recent?: Array<PlannerMatch>;

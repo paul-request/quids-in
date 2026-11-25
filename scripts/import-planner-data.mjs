@@ -150,6 +150,7 @@ function createPlayer(element, recent) {
     id: requireNumber(element.id, 'player ID'),
     minutes: requireNumber(element.minutes, 'player minutes'),
     name: String(element.web_name),
+    pointsPerGame: readPer90(element.points_per_game),
     position,
     ...(recent && recent.length > 0 ? { recent } : {}),
     savesPer90: readPer90(element.saves_per_90),

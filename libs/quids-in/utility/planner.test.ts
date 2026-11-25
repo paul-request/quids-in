@@ -73,6 +73,13 @@ describe('projectFixture', () => {
     expect(injured).toBe(0);
   });
 
+  it('anchors projections towards season points per game', () => {
+    const baseline = projectFixture(forward, opponent, true, 10, averages);
+    const elite = projectFixture(player({ id: 1, pointsPerGame: 9 }), opponent, true, 10, averages);
+
+    expect(elite).toBeGreaterThan(baseline);
+  });
+
   it('lowers projections for players in poor recent form and raises them for hot form', () => {
     const baseline = projectFixture(forward, opponent, true, 10, averages);
     const cold = projectFixture(player({ id: 1, form: 1 }), opponent, true, 10, averages);
@@ -157,6 +164,16 @@ describe('projectFixture', () => {
 
     expect(keeper(5)).toBeGreaterThan(keeper(1));
     expect(defender(12)).toBeGreaterThan(defender(3));
+    const midfielder = (dc: number) =>
+      projectFixture(
+        player({ id: 3, position: 3, recent: recent(0, dc), xAPer90: 0, xGPer90: 0 }),
+        opponent,
+        true,
+        10,
+        averages
+      );
+
+    expect(midfielder(14)).toBeGreaterThan(midfielder(4));
   });
 
   it('projects nothing for players with no minutes', () => {

@@ -96,7 +96,7 @@ describe('importPlannerData', () => {
       xG: 0.3,
       xGC: 1,
     });
-    expect(data.players[0]).toMatchObject({ form: 0, xGPer90: 0.5, xAPer90: 0.2, xGCPer90: 1.1 });
+    expect(data.players[0]).toMatchObject({ form: 0, pointsPerGame: 0, xGPer90: 0.5, xAPer90: 0.2, xGCPer90: 1.1 });
   });
 
   it('falls back to overall strength when attack/defence strengths are zero', async () => {
