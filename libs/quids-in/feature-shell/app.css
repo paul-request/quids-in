@@ -1047,3 +1047,7 @@ tbody tr:last-child td {
     margin-left: 0;
   }
 }
+
+.summary-icon {
+  margin-right: 0.5rem;
+}
