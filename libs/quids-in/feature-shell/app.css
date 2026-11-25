@@ -338,8 +338,8 @@ a:focus-visible {
   font-weight: 700;
 }
 
-.player-stats {
-  max-width: 50rem;
+.player-stats__heading h1 {
+  margin-bottom: 0;
 }
 
 .player-stats__team {
@@ -710,6 +710,23 @@ tbody tr:last-child td {
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
+.score-table tbody tr:last-child th,
+.score-table tbody tr:last-child td {
+  border-bottom: 1px solid #35456f;
+}
+
+.score-table .winning-score:last-child th,
+.score-table .winning-score:last-child td {
+  border-bottom-color: #ffe36e;
+}
+
+.score-table thead th,
+.score-table thead th:first-child {
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
 .score-table .winning-score th,
 .score-table .winning-score td {
   border-color: #ffe36e;
@@ -867,4 +884,221 @@ tbody tr:last-child td {
     margin-bottom: 1.5rem;
     break-inside: avoid;
   }
+}
+
+.planner-note {
+  margin: 0.5rem 0;
+  color: #c8d4ff;
+  font-size: 0.875rem;
+}
+
+.planner-wrapper {
+  position: relative;
+}
+
+.planner-table {
+  min-width: 38rem;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: center;
+}
+
+.planner-table th,
+.planner-table td {
+  padding: 0.25rem;
+  border-bottom: 0;
+}
+
+.planner-table thead th:first-child,
+.planner-player {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 6.5rem;
+  background: #101936;
+  text-align: left;
+}
+
+.planner-table thead th:first-child {
+  width: 7.5rem;
+}
+
+.planner-table thead th:last-child {
+  width: 4.5rem;
+}
+
+.planner-player__name {
+  display: block;
+  font-weight: 700;
+}
+
+.planner-player__position {
+  display: block;
+  color: #c8d4ff;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.planner-section th {
+  padding-top: 1rem;
+  color: #c8d4ff;
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.planner-cell {
+  min-width: 4.5rem;
+  border: 0.125rem solid transparent;
+  border-radius: 0.375rem;
+  background: #1c2754;
+  background-clip: padding-box;
+}
+
+.planner-cell__fixture {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.planner-cell__points {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.planner-cell--fdr-1,
+.planner-cell--fdr-2 {
+  color: #0d2a17;
+  background-color: #6fd89a;
+}
+
+.planner-cell--fdr-3 {
+  color: #f5f7fb;
+  background-color: #2b3566;
+}
+
+.planner-cell--fdr-4 {
+  color: #3a2300;
+  background-color: #f4b860;
+}
+
+.planner-cell--fdr-5 {
+  color: #3a0a12;
+  background-color: #f08a96;
+}
+
+.planner-sum {
+  font-weight: 700;
+}
+
+.planner-total th,
+.planner-total td,
+.planner-captain th,
+.planner-captain td {
+  font-weight: 700;
+}
+
+.planner-spacer td {
+  padding: 0.5rem 0;
+  border: 0;
+}
+
+.planner-total th,
+.planner-total td {
+  padding-top: 0.5rem;
+  border-top: 1px solid #35456f;
+}
+
+.planner-captain td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.planner-captain th,
+.planner-captain td {
+  padding-bottom: 0.5rem;
+  border-top: 1px solid #35456f;
+  border-bottom: 1px solid #35456f;
+}
+
+.planner-suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.planner-suggestion {
+  padding: 0.75rem;
+  border: 1px solid #35456f;
+  border-radius: 0.5rem;
+  background: #162143;
+}
+
+.planner-suggestion h3 {
+  margin: 0;
+}
+
+.planner-suggestion ol {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.planner-suggestion li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.planner-suggestion__points {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.planner-generated {
+  margin-top: 1.5rem;
+}
+
+
+.planner-transfers {
+  margin-top: 1.5rem;
+}
+
+.player-stats__heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.player-stats__heading .header-button {
+  margin-left: auto;
+}
+
+.planner-vice {
+  display: block;
+  margin-top: 0.25rem;
+  color: #c8d4ff;
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+@media (max-width: 40rem) {
+  .player-stats__heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .player-stats__heading .header-button {
+    justify-content: center;
+    margin-left: 0;
+  }
+}
+
+.summary-icon {
+  margin-right: 0.5rem;
 }

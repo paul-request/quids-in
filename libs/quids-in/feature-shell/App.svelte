@@ -2,6 +2,7 @@
   import { untrack } from 'svelte';
 
   import cupDrawFile from '../../../data/cup-draw-2026-27.json';
+  import plannerFile from '../../../data/planner-2026-27.json';
   import season from '../../../data/season-2026-27.json';
   import { applyCupReveal, buildSeasonCups, getCupPrizes } from '../utility/cups';
   import type { CupDrawFile } from '../utility/cups.interfaces';
@@ -16,6 +17,8 @@
     calculateSeasonBalances,
     calculateTeamValue,
   } from '../utility/results';
+  import { buildPlannerTable, suggestTransfers } from '../utility/planner';
+  import type { PlannerData } from '../utility/planner.interfaces';
   import { indexParticipantsById } from '../utility/formatting';
   import { isCurrentGameweekInProgress } from '../utility/gameweek-status';
   import type { Season } from '../utility/results.interfaces';
@@ -30,11 +33,13 @@
   import StandingsCard from './StandingsCard.svelte';
   import PlayerStats from './PlayerStats.svelte';
   import CupsPage from './CupsPage.svelte';
+  import PlannerPage from './PlannerPage.svelte';
 
   let {
     seasonData = season,
     cupDraw = cupDrawFile,
-  }: { seasonData?: Season; cupDraw?: CupDrawFile } = $props();
+    plannerData = plannerFile as PlannerData,
+  }: { seasonData?: Season; cupDraw?: CupDrawFile; plannerData?: PlannerData } = $props();
 
   let participantsById = $derived(indexParticipantsById(seasonData.participants));
   let leaderboard = $derived(
@@ -78,6 +83,13 @@
       : undefined,
   );
   let currentHash = $state(typeof window === 'undefined' ? '#/' : window.location.hash || '#/');
+  let plannerPlayerId = $derived(getPlannerPlayerId(currentHash));
+  let plannerTable = $derived(
+    plannerPlayerId === undefined ? undefined : buildPlannerTable(plannerData, plannerPlayerId),
+  );
+  let plannerSuggestions = $derived(
+    plannerPlayerId === undefined ? [] : suggestTransfers(plannerData, plannerPlayerId),
+  );
   let playerId = $derived(getPlayerId(currentHash));
   let selectedPlayer = $derived(
     playerId === undefined ? undefined : participantsById.get(playerId),
@@ -108,6 +120,13 @@
       : calculateTeamValue(seasonData.participants, seasonData.gameweeks, playerId),
   );
 
+  function getPlannerPlayerId(hash: string): number | undefined {
+    const match = /^#\/players\/(\d+)\/planner$/.exec(hash);
+    const id = match ? Number(match[1]) : undefined;
+
+    return id && Number.isInteger(id) ? id : undefined;
+  }
+
   function getPlayerId(hash: string): number | undefined {
     const match = /^#\/players\/(\d+)$/.exec(hash);
     const playerId = match ? Number(match[1]) : undefined;
@@ -118,7 +137,14 @@
 
 <svelte:window onhashchange={() => (currentHash = window.location.hash || '#/')} />
 
-{#if currentHash.startsWith('#/players/')}
+{#if plannerPlayerId !== undefined}
+  <PlannerPage
+    participant={participantsById.get(plannerPlayerId)}
+    table={plannerTable}
+    suggestions={plannerSuggestions}
+    generatedAt={plannerData.generatedAt}
+  />
+{:else if currentHash.startsWith('#/players/')}
   <PlayerStats
     stats={playerStats}
     participant={selectedPlayer}

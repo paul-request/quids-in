@@ -42,6 +42,10 @@ jobs:
       - name: Import current FPL season data
         if: ${{ !inputs.use_committed_snapshot }}
         run: scripts/retry.sh 3 60 npm run import:season-data
+      - name: Import squad planner data
+        if: ${{ !inputs.use_committed_snapshot }}
+        continue-on-error: true
+        run: scripts/retry.sh 3 60 npm run import:planner-data
       - name: Warn that the committed snapshot is being deployed
         if: ${{ inputs.use_committed_snapshot }}
         run: >-

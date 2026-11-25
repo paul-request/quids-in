@@ -41,11 +41,11 @@
     </div>
   </div>
   <p class="winner-summary">
-    <span aria-hidden="true">🏆 </span>Highest score: <strong>{formatNumber(result.highestScore)}</strong>
+    <span class="summary-icon" aria-hidden="true">🏆</span>Highest score: <strong>{formatNumber(result.highestScore)}</strong>
     (<strong>{getParticipantNames(result.winners.map((winner) => winner.participantId))}</strong>).
   </p>
   <p class="lowest-score">
-    <span aria-hidden="true">🐌 </span>Lowest score: <strong>{formatNumber(result.lowestScore)}</strong>
+    <span class="summary-icon" aria-hidden="true">🐌</span>Lowest score: <strong>{formatNumber(result.lowestScore)}</strong>
     (<strong>{getParticipantNames(result.lastPlaceParticipantIds)}</strong>).
   </p>
   {#if stats.available}

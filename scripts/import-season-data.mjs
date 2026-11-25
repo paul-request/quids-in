@@ -373,7 +373,7 @@ async function fetchLeagueEntries(fetchFn, leagueId) {
   return { cupLeagueId, entries };
 }
 
-async function fetchJson(fetchFn, path, description) {
+export async function fetchJson(fetchFn, path, description) {
   let response;
   let lastError;
 
