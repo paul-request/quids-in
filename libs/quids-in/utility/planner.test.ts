@@ -86,14 +86,13 @@ describe('projectFixture', () => {
     expect(elite).toBeGreaterThan(baseline);
   });
 
-  it('lowers projections for players in poor recent form and raises them for hot form', () => {
+  it('raises projections for hot form but does not penalise cold form', () => {
     const baseline = projectFixture(forward, opponent, true, 10, averages);
     const cold = projectFixture(player({ id: 1, form: 1 }), opponent, true, 10, averages);
     const hot = projectFixture(player({ id: 1, form: 9 }), opponent, true, 10, averages);
 
-    expect(cold).toBeLessThan(baseline);
+    expect(cold).toBeCloseTo(baseline);
     expect(hot).toBeGreaterThan(baseline);
-    expect(cold).toBeGreaterThan(0);
   });
 
   it('lowers projections for recently benched players and raises them for recent hot streaks', () => {

@@ -230,17 +230,19 @@ export function projectFixture(
   // season's points per game say whether they actually do (elite finishers
   // beat their xG). Scale the projection by how far each is from the
   // expectation against an average opponent, weighted by its anchor weight.
+  // Form can only lift a projection: a cold spell shouldn't drag an elite
+  // player's underlying rate down.
   const neutral = expected(1, 1);
   const anchors = [
-    { value: player.form, weight: FORM_WEIGHT },
-    { value: player.pointsPerGame, weight: POINTS_PER_GAME_WEIGHT },
+    { floor: 1, value: player.form, weight: FORM_WEIGHT },
+    { floor: 0, value: player.pointsPerGame, weight: POINTS_PER_GAME_WEIGHT },
   ];
   const ratioMax = player.position <= 2 ? DEFENDER_FORM_RATIO_MAX : FORM_RATIO_MAX;
   const multiplier = anchors.reduce(
-    (total, { value, weight }) =>
+    (total, { floor, value, weight }) =>
       value === undefined || neutral <= 0
         ? total
-        : total + weight * (Math.min(ratioMax, value / neutral) - 1),
+        : total + weight * (Math.min(ratioMax, Math.max(floor, value / neutral)) - 1),
     1
   );
 
